@@ -24,6 +24,8 @@ interface Session {
   /** This visit's checklist: the template minus hidden items, plus added ones. */
   checklist?: RequiredItem[];
   transcript?: Transcript;
+  /** Moments the clinician flagged during the visit, in seconds from the start. */
+  flags?: number[];
   note?: ClinicalNote;
 }
 

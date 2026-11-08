@@ -26,6 +26,21 @@ const paths = {
     </>
   ),
   check: <path d="M5 12l5 5L20 7" />,
+  flag: (
+    <>
+      <path d="M5 21V4" />
+      <path d="M5 4h11l-2 4 2 4H5" />
+    </>
+  ),
+  pause: (
+    <>
+      <path d="M9 5v14" />
+      <path d="M15 5v14" />
+    </>
+  ),
+  play: <path d="M8 5v14l11-7z" />,
+  chevronUp: <path d="M6 15l6-6 6 6" />,
+  chevronDown: <path d="M6 9l6 6 6-6" />,
 };
 
 export type IconName = keyof typeof paths;

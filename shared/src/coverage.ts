@@ -32,6 +32,17 @@ export function detectCoverage(
   });
 }
 
+/**
+ * The one item to suggest next: the first uncovered required item in
+ * checklist order (templates run Subjective → Objective → Assessment → Plan,
+ * which follows a visit), then optional ones. Undefined when all are covered.
+ */
+export function nextSuggestion(encounterType: WithItems, coverage: ItemCoverage[]): RequiredItem | undefined {
+  const covered = new Set(coverage.filter((c) => c.state === 'covered').map((c) => c.itemId));
+  const open = encounterType.items.filter((i) => !covered.has(i.id));
+  return open.find((i) => i.priority === 'required') ?? open[0];
+}
+
 /** Required items not yet covered, payer-critical first. */
 export function missingRequired(
   encounterType: WithItems,

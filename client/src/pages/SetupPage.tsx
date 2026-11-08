@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { buildChecklist, createCustomItem, encounterTypes, type RequiredItem } from '@encounter/shared';
 import { ChecklistEditor } from '../components/ChecklistEditor';
 import { Icon } from '../components/Icon';
@@ -12,6 +12,7 @@ import './setup.css';
  */
 export function SetupPage() {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const { start } = useSession();
   const [patientId, setPatientId] = useState(mockPatients[0].id);
   const [typeId, setTypeId] = useState(encounterTypes[0].id);
@@ -38,7 +39,8 @@ export function SetupPage() {
 
   function handleStart() {
     start({ patient: mockPatients.find((p) => p.id === patientId)!, encounterTypeId: typeId, checklist });
-    navigate('/live');
+    // Keep demo options like ?speed= and ?fail= across screens.
+    navigate(`/live${search}`);
   }
 
   return (
