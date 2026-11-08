@@ -167,7 +167,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: 6px 0;
+  min-height: 42px;
+  padding: 4px 0;
   border-bottom: 1px solid var(--surface-sunken);
 }
 

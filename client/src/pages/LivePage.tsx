@@ -13,7 +13,9 @@ export function LivePage() {
     <main className="placeholder">
       <p className="eyebrow">Live encounter</p>
       <h1>{session.patient.name} · {type.name}</h1>
-      <p className="muted">The in-meeting screen is built in step 4.</p>
+      <p className="muted">
+        {session.checklist?.length ?? 0} items on this visit’s checklist. The in-meeting screen is built in step 4.
+      </p>
       <div className="placeholder-actions">
         <button type="button" className="btn" onClick={() => navigate('/')}>Back to setup</button>
         <button type="button" className="btn btn-primary" onClick={() => navigate('/review')}>End visit</button>

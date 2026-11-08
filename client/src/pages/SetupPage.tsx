@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { encounterTypes } from '@encounter/shared';
+import { buildChecklist, createCustomItem, encounterTypes, type RequiredItem } from '@encounter/shared';
+import { ChecklistEditor } from '../components/ChecklistEditor';
 import { Icon } from '../components/Icon';
 import { mockPatients, useSession } from '../session';
 import './setup.css';
@@ -15,13 +16,28 @@ export function SetupPage() {
   const [patientId, setPatientId] = useState(mockPatients[0].id);
   const [typeId, setTypeId] = useState(encounterTypes[0].id);
   const [consented, setConsented] = useState(false);
+  // Per-visit changes to the checklist. Hidden ids only match optional items,
+  // and added items stay when switching encounter type (they're about the patient).
+  const [hiddenIds, setHiddenIds] = useState<ReadonlySet<string>>(new Set());
+  const [customItems, setCustomItems] = useState<RequiredItem[]>([]);
+  const nextCustomId = useRef(1);
 
   const type = encounterTypes.find((t) => t.id === typeId)!;
-  const requiredCount = type.items.filter((i) => i.priority === 'required').length;
-  const payerCount = type.items.filter((i) => i.payerCritical).length;
+  const checklist = buildChecklist(type, hiddenIds, customItems);
+  const requiredCount = checklist.filter((i) => i.priority === 'required').length;
+  const payerCount = checklist.filter((i) => i.payerCritical).length;
+
+  function setHidden(id: string, hide: boolean) {
+    setHiddenIds((prev) => {
+      const next = new Set(prev);
+      if (hide) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   function handleStart() {
-    start({ patient: mockPatients.find((p) => p.id === patientId)!, encounterTypeId: typeId });
+    start({ patient: mockPatients.find((p) => p.id === patientId)!, encounterTypeId: typeId, checklist });
     navigate('/live');
   }
 
@@ -87,20 +103,15 @@ export function SetupPage() {
             </p>
           </div>
 
-          <ul className="capture-list">
-            {type.items.map((item) => (
-              <li key={item.id}>
-                <span>{item.label}</span>
-                {item.payerCritical && (
-                  <span className="tag tag-payer" title="Commonly required by payers, so it can’t be removed">
-                    <Icon name="lock" size={11} strokeWidth={2.5} />
-                    Payer
-                  </span>
-                )}
-                {item.priority === 'recommended' && <span className="tag">Optional</span>}
-              </li>
-            ))}
-          </ul>
+          <ChecklistEditor
+            templateItems={type.items}
+            hiddenIds={hiddenIds}
+            customItems={customItems}
+            onHide={(item) => setHidden(item.id, true)}
+            onRestore={(item) => setHidden(item.id, false)}
+            onAdd={(label) => setCustomItems((prev) => [...prev, createCustomItem(label, `custom-${nextCustomId.current++}`)])}
+            onRemove={(item) => setCustomItems((prev) => prev.filter((i) => i.id !== item.id))}
+          />
 
           <div className="capture-footer">
             <label className="consent">

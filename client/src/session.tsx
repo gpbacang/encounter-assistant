@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { ClinicalNote, Transcript } from '@encounter/shared';
+import type { ClinicalNote, RequiredItem, Transcript } from '@encounter/shared';
 
 export interface Patient {
   id: string;
@@ -21,6 +21,8 @@ export const mockPatients: Patient[] = [
 interface Session {
   patient?: Patient;
   encounterTypeId?: string;
+  /** This visit's checklist: the template minus hidden items, plus added ones. */
+  checklist?: RequiredItem[];
   transcript?: Transcript;
   note?: ClinicalNote;
 }
@@ -28,7 +30,7 @@ interface Session {
 interface SessionContextValue {
   session: Session;
   /** Begin a new encounter, discarding any previous one. */
-  start: (init: { patient: Patient; encounterTypeId: string }) => void;
+  start: (init: { patient: Patient; encounterTypeId: string; checklist: RequiredItem[] }) => void;
   update: (patch: Partial<Session>) => void;
   reset: () => void;
 }

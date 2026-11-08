@@ -26,7 +26,7 @@ client/   React + TypeScript (Vite), plain CSS with design tokens
 | Part | Status |
 | --- | --- |
 | Encounter types and required items | Real data, modeled on Medicare's lower limb prostheses policy (illustrative) |
-| Setup screen | Built |
+| Setup screen | Built, including per-visit add and hide for checklist items |
 | Live encounter screen | Placeholder (next step) |
 | Review screen | Placeholder |
 | Transcription | Mock provider returning a scripted conversation, with simulated latency |

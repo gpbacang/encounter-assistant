@@ -24,6 +24,8 @@ export interface RequiredItem {
    * Used by the mock detector; a real system would use the LLM for this.
    */
   keywords: string[];
+  /** Added by the clinician for this visit only, not part of the template. */
+  addedByClinician?: boolean;
 }
 
 export interface EncounterType {

@@ -1,5 +1,8 @@
 import type { EncounterType, ItemCoverage, RequiredItem, TranscriptSegment } from './types';
 
+/** Anything with a checklist: an encounter type, or a visit's customized checklist. */
+type WithItems = Pick<EncounterType, 'items'>;
+
 /**
  * Mock coverage detector: an item counts as covered once any of its keywords
  * appears in the transcript (whole-word, case-insensitive).
@@ -18,7 +21,7 @@ function matches(item: RequiredItem, text: string): boolean {
 }
 
 export function detectCoverage(
-  encounterType: EncounterType,
+  encounterType: WithItems,
   segments: TranscriptSegment[],
 ): ItemCoverage[] {
   return encounterType.items.map((item) => {
@@ -31,7 +34,7 @@ export function detectCoverage(
 
 /** Required items not yet covered, payer-critical first. */
 export function missingRequired(
-  encounterType: EncounterType,
+  encounterType: WithItems,
   coverage: ItemCoverage[],
 ): RequiredItem[] {
   const covered = new Set(coverage.filter((c) => c.state === 'covered').map((c) => c.itemId));
