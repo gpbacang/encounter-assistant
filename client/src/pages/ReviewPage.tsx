@@ -122,14 +122,13 @@ export function ReviewPage() {
     setToast('Statement removed');
   }
 
-  function fillGap(item: RequiredItem, text: string, notApplicable = false) {
+  function fillGap(item: RequiredItem, text: string) {
     const stmt: NoteStatement = {
       id: `clinician-${item.id}`,
-      text: notApplicable ? `${item.label}: not applicable. ${/[.!?]$/.test(text) ? text : `${text}.`}` : text,
+      text,
       sourceSegmentIds: [],
       itemId: item.id,
       origin: 'clinician',
-      notApplicable,
     };
     setNote({
       ...note!,
@@ -137,7 +136,7 @@ export function ReviewPage() {
       missingItemIds: note!.missingItemIds.filter((id) => id !== item.id),
     });
     setSelectedId(stmt.id);
-    setToast(notApplicable ? `Marked “${item.label}” not applicable` : `Added “${item.label}”`);
+    setToast(`Added “${item.label}”`);
   }
 
   function goToGap(item: RequiredItem | undefined) {
@@ -232,7 +231,6 @@ export function ReviewPage() {
                         else gapRefs.current.delete(item.id);
                       }}
                       onAdd={(text) => fillGap(item, text)}
-                      onNotApplicable={(reason) => fillGap(item, reason, true)}
                     />
                   ))}
                 </section>

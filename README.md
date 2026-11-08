@@ -57,7 +57,7 @@ Configuration lives in `server/.env.example` (provider, simulated latency, rando
 | Setup screen | Built, including per-visit add and hide for checklist items |
 | Live encounter screen | Built: simulated recording, suggested next, progress, wrap-up check |
 | Processing | Built: calls both endpoints, retries resume at the failed step |
-| Review screen | Built: each statement links to its transcript evidence; edit or remove statements; fill gaps by dictating (simulated) or typing, or mark them not applicable with a reason; sign with a warning if items are missing |
+| Review screen | Built: each statement links to its transcript evidence; edit or remove statements; fill gaps by dictating (simulated) or typing; sign with a warning if items are missing |
 | Signing and export | Signing is local; copy and download as text work; export to a record system is not built |
 | Transcription | Mock provider returning the scripted conversation, trimmed to the recording length |
 | SOAP note generation | Mock provider with canned clinical phrasing; real provider is a stub behind the same interface |

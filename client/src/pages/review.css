@@ -423,15 +423,6 @@
   gap: 10px;
 }
 
-.gap-na {
-  margin-left: auto;
-}
-
-.gap-label {
-  font-size: 0.9375rem;
-  font-weight: 600;
-}
-
 .gap-form {
   display: flex;
   flex-direction: column;

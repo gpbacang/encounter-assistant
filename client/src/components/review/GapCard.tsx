@@ -3,25 +3,25 @@ import type { RequiredItem } from '@encounter/shared';
 import { mockDictations } from '../../data/mockDictations';
 import { Icon } from '../Icon';
 
-type Mode = 'idle' | 'listening' | 'writing' | 'not-applicable';
+type Mode = 'idle' | 'listening' | 'writing';
 
 const LISTEN_MS = 2400;
-const MIN_REASON = 3;
 
 interface Props {
   item: RequiredItem;
   onAdd: (text: string) => void;
-  /** Mark the item as not applicable for this visit, with the clinician's reason. */
-  onNotApplicable: (reason: string) => void;
 }
 
 /**
  * A required item the visit never covered, shown where it belongs in the
- * note. The clinician fills it by dictating (simulated) or typing, or marks
- * it not applicable with a reason. A reason is required: the payer gets an
- * explanation in the note instead of a silent gap.
+ * note. The clinician fills it by dictating (simulated) or typing.
+ *
+ * Deliberately no "not applicable" button: a one-click way out of required
+ * items would become the default under time pressure, and payers still expect
+ * the documentation. If an item truly doesn't apply, the clinician can type
+ * why in their own words, or sign with the gap visible.
  */
-export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item, onAdd, onNotApplicable }, ref) {
+export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item, onAdd }, ref) {
   const [mode, setMode] = useState<Mode>('idle');
   const [draft, setDraft] = useState('');
   const [hint, setHint] = useState('');
@@ -29,7 +29,7 @@ export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item
   const titleId = `gap-${item.id}`;
 
   useEffect(() => {
-    if (mode === 'writing' || mode === 'not-applicable') textareaRef.current?.focus();
+    if (mode === 'writing') textareaRef.current?.focus();
   }, [mode]);
 
   useEffect(() => {
@@ -49,16 +49,13 @@ export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item
     setHint('');
   }
 
-  const isNA = mode === 'not-applicable';
-  const canSubmit = isNA ? draft.trim().length >= MIN_REASON : draft.trim().length > 0;
-
   return (
     <div className={`gap ${item.payerCritical ? 'is-payer' : ''}`} ref={ref} tabIndex={-1} aria-labelledby={titleId}>
       <div className="gap-head">
         <span id={titleId} className="gap-title">{item.label}</span>
         <span className="tag tag-payer">{item.payerCritical ? 'Payer · missing' : 'Missing'}</span>
       </div>
-      {item.prompt !== item.label && !isNA && <p className="gap-prompt">{item.prompt}</p>}
+      {item.prompt !== item.label && <p className="gap-prompt">{item.prompt}</p>}
 
       {mode === 'idle' && (
         <div className="gap-actions">
@@ -67,9 +64,6 @@ export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item
             Dictate
           </button>
           <button type="button" className="btn btn-compact" onClick={() => setMode('writing')}>Type it</button>
-          <button type="button" className="btn-link gap-na" onClick={() => setMode('not-applicable')}>
-            Not applicable
-          </button>
         </div>
       )}
 
@@ -83,41 +77,27 @@ export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item
         </div>
       )}
 
-      {(mode === 'writing' || isNA) && (
+      {mode === 'writing' && (
         <form
           className="gap-form"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!canSubmit) return;
-            if (isNA) onNotApplicable(draft.trim());
-            else onAdd(draft.trim());
+            if (draft.trim()) onAdd(draft.trim());
           }}
         >
-          <label className={isNA ? 'gap-label' : 'sr-only'} htmlFor={`${titleId}-text`}>
-            {isNA ? 'Why doesn’t this apply to this visit?' : item.label}
-          </label>
+          <label className="sr-only" htmlFor={`${titleId}-text`}>{item.label}</label>
           <textarea
             id={`${titleId}-text`}
             ref={textareaRef}
-            rows={isNA ? 2 : 3}
+            rows={3}
             value={draft}
-            placeholder={isNA ? 'e.g. Documented at last week’s visit; no change since.' : undefined}
-            aria-describedby={isNA || hint ? `${titleId}-hint` : undefined}
+            aria-describedby={hint ? `${titleId}-hint` : undefined}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === 'Escape' && reset()}
           />
-          {isNA ? (
-            <p id={`${titleId}-hint`} className="gap-hint">
-              The reason is written into the note.
-              {item.payerCritical && ' Payers may still require this item, so be specific.'}
-            </p>
-          ) : (
-            hint && <p id={`${titleId}-hint`} className="gap-hint">{hint}</p>
-          )}
+          {hint && <p id={`${titleId}-hint`} className="gap-hint">{hint}</p>}
           <div className="gap-actions">
-            <button type="submit" className="btn btn-primary btn-compact" disabled={!canSubmit}>
-              {isNA ? 'Mark not applicable' : 'Add to note'}
-            </button>
+            <button type="submit" className="btn btn-primary btn-compact" disabled={!draft.trim()}>Add to note</button>
             <button type="button" className="btn btn-compact" onClick={reset}>Cancel</button>
           </div>
         </form>
