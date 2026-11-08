@@ -85,7 +85,11 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
       <button type="button" className="stmt-main" aria-pressed={selected} onClick={onSelect}>
         <span className="stmt-text">{statement.text}</span>
         <span className="stmt-meta">
-          {statement.origin === 'clinician' && <span className="tag tag-added">Added by you</span>}
+          {statement.notApplicable ? (
+            <span className="tag">Not applicable</span>
+          ) : (
+            statement.origin === 'clinician' && <span className="tag tag-added">Added by you</span>
+          )}
           {statement.edited && <span className="tag">Edited</span>}
           {evidenceAt !== undefined ? (
             <span className="stmt-time" aria-label={`From the recording at ${formatClock(evidenceAt)}`}>

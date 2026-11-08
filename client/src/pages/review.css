@@ -423,6 +423,15 @@
   gap: 10px;
 }
 
+.gap-na {
+  margin-left: auto;
+}
+
+.gap-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
 .gap-form {
   display: flex;
   flex-direction: column;
@@ -516,12 +525,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.is-evidence .tp-empty {
-  font-size: 0.9375rem;
-  color: var(--ink-muted);
-}
-
-.tp-time {
+.is-evidence .tp-time {
   color: var(--accent);
   font-weight: 600;
 }

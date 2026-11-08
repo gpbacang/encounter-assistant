@@ -66,6 +66,8 @@ export interface NoteStatement {
   origin?: 'ai' | 'clinician';
   /** A drafted statement the clinician changed. */
   edited?: boolean;
+  /** The clinician marked the item as not applicable; the text carries the reason. */
+  notApplicable?: boolean;
 }
 
 export interface ClinicalNote {
