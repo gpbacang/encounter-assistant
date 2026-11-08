@@ -51,7 +51,7 @@ Check the API end to end against a running server:
 npm run smoke -w server
 ```
 
-Configuration lives in `server/.env.example` (provider, simulated latency, random failure rate).
+Configuration lives in `server/.env.example` (provider, simulated latency, random failure rate). To change it, copy it to `server/.env`; the server loads that file on start if it exists, and shell variables still work.
 
 ## What's real and what's mocked
 
