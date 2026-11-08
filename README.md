@@ -2,6 +2,10 @@
 
 Prototype for an AI-assisted encounter tool for prosthetists: set up the visit, get glanceable guidance while recording, and review a structured SOAP note afterwards.
 
+## How this was built
+
+To fit the timebox, the code was generated with an AI assistant (Claude). I set the direction and made the product decisions, worked through the build one step at a time, and reviewed each step before moving on. Every step was typechecked, run end to end in an automated browser, scanned for accessibility, and checked with the API smoke test below. The git history shows the steps in order.
+
 ## Run it
 
 ```bash
