@@ -30,6 +30,8 @@ interface Session {
   /** Moments the clinician flagged during the visit, in seconds from the start. */
   flags?: number[];
   note?: ClinicalNote;
+  /** Set when the clinician approves and signs the note. */
+  signedAt?: string;
 }
 
 interface SessionContextValue {

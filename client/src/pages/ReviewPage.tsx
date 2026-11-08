@@ -1,25 +1,34 @@
-import { Navigate, useNavigate } from 'react-router-dom';
-import { getEncounterType, type SoapSection } from '@encounter/shared';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { getEncounterType, type ClinicalNote, type NoteStatement, type RequiredItem, type SoapSection } from '@encounter/shared';
+import { Icon } from '../components/Icon';
+import { ApproveDialog } from '../components/review/ApproveDialog';
+import { GapCard } from '../components/review/GapCard';
 import { ProcessingView } from '../components/review/ProcessingView';
+import { SignedView } from '../components/review/SignedView';
+import { StatementRow } from '../components/review/StatementRow';
+import { TranscriptPanel } from '../components/review/TranscriptPanel';
 import { useNotePipeline } from '../hooks/useNotePipeline';
+import { noteToText, SOAP_SECTIONS } from '../noteText';
+import { scrollWithin } from '../scrollWithin';
 import { useSession } from '../session';
 import './review.css';
 
-const SECTIONS: { key: SoapSection; label: string }[] = [
-  { key: 'subjective', label: 'Subjective' },
-  { key: 'objective', label: 'Objective' },
-  { key: 'assessment', label: 'Assessment' },
-  { key: 'plan', label: 'Plan' },
-];
+function formatDuration(sec: number) {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return m ? `${m} min ${s} s` : `${s} s`;
+}
 
 /**
- * Step 3–4 of the flow: process the recording, then review the note.
- * The review itself is a plain preview for now; the next step builds
- * evidence links and filling gaps.
+ * Steps 3–5 of the flow: process the recording, review the note, sign it.
+ * Review is about verifying, not rewriting: every statement links to its
+ * evidence, and gaps sit where they belong in the note.
  */
 export function ReviewPage() {
   const navigate = useNavigate();
-  const { session, update } = useSession();
+  const { search } = useLocation();
+  const { session, update, reset } = useSession();
   const type = session.encounterTypeId ? getEncounterType(session.encounterTypeId) : undefined;
 
   const pipeline = useNotePipeline({
@@ -32,44 +41,221 @@ export function ReviewPage() {
     onNote: (note) => update({ note }),
   });
 
-  if (!session.patient || !type || !session.checklist || !session.liveTranscript) return <Navigate to="/" replace />;
-  if (pipeline.stage !== 'done' || !session.note) return <ProcessingView state={pipeline} onRetry={pipeline.retry} />;
+  const [selectedId, setSelectedId] = useState<string>();
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [toast, setToast] = useState('');
+  const gapRefs = useRef(new Map<string, HTMLDivElement>());
+  const noteRef = useRef<HTMLElement>(null);
 
   const note = session.note;
-  const missing = session.checklist.filter((i) => note.missingItemIds.includes(i.id));
+  const checklist = session.checklist ?? [];
+  const missing = useMemo(
+    () => (note ? checklist.filter((i) => note.missingItemIds.includes(i.id)) : []),
+    [note, checklist],
+  );
+  const segmentStart = useMemo(
+    () => new Map((session.transcript?.segments ?? []).map((s) => [s.id, s.start])),
+    [session.transcript],
+  );
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(''), 2500);
+    return () => window.clearTimeout(id);
+  }, [toast]);
+
+  if (!session.patient || !type || !session.checklist || !session.liveTranscript) return <Navigate to="/" replace />;
+  if (pipeline.stage !== 'done' || !note || !session.transcript) {
+    return <ProcessingView state={pipeline} onRetry={pipeline.retry} />;
+  }
+
+  const title = `${session.patient.name} · ${type.name}`;
+  const allStatements = Object.values(note.sections).flat();
+  const selected = allStatements.find((s) => s.id === selectedId);
+
+  if (session.signedAt) {
+    const date = new Date(session.signedAt);
+    const text = noteToText(note, [
+      `${type.name} — ${session.patient.name}, ${session.patient.age}`,
+      `Signed by E. Sandberg, CPO, ${date.toLocaleString()}`,
+    ]);
+    return (
+      <SignedView
+        title={title}
+        signedAt={session.signedAt}
+        noteText={text}
+        fileName={`${session.patient.name.replace(/\s+/g, '-').toLowerCase()}-${type.id}.txt`}
+        missingCount={missing.length}
+        onNewEncounter={() => {
+          reset();
+          navigate(`/${search}`);
+        }}
+      />
+    );
+  }
+
+  function setNote(next: ClinicalNote) {
+    update({ note: next });
+  }
+
+  function mapSection(section: SoapSection, fn: (list: NoteStatement[]) => NoteStatement[]) {
+    setNote({ ...note!, sections: { ...note!.sections, [section]: fn(note!.sections[section]) } });
+  }
+
+  function saveStatement(section: SoapSection, id: string, text: string) {
+    mapSection(section, (list) =>
+      list.map((s) => (s.id === id && s.text !== text ? { ...s, text, edited: s.origin !== 'clinician' } : s)),
+    );
+  }
+
+  function removeStatement(section: SoapSection, stmt: NoteStatement) {
+    const sections = { ...note!.sections, [section]: note!.sections[section].filter((s) => s.id !== stmt.id) };
+    // If that was the only statement for a required item, the item is missing again.
+    const item = checklist.find((i) => i.id === stmt.itemId);
+    const stillCovered = Object.values(sections).flat().some((s) => s.itemId === stmt.itemId);
+    const missingItemIds =
+      item && item.priority === 'required' && !stillCovered && !note!.missingItemIds.includes(item.id)
+        ? [...note!.missingItemIds, item.id]
+        : note!.missingItemIds;
+    setNote({ ...note!, sections, missingItemIds });
+    setSelectedId(undefined);
+    setToast('Statement removed');
+  }
+
+  function fillGap(item: RequiredItem, text: string) {
+    const stmt: NoteStatement = {
+      id: `clinician-${item.id}`,
+      text,
+      sourceSegmentIds: [],
+      itemId: item.id,
+      origin: 'clinician',
+    };
+    setNote({
+      ...note!,
+      sections: { ...note!.sections, [item.soap]: [...note!.sections[item.soap], stmt] },
+      missingItemIds: note!.missingItemIds.filter((id) => id !== item.id),
+    });
+    setSelectedId(stmt.id);
+    setToast(`Added “${item.label}”`);
+  }
+
+  function goToGap(item: RequiredItem | undefined) {
+    const el = item && gapRefs.current.get(item.id);
+    if (!el) return;
+    scrollWithin(noteRef.current, el);
+    el.focus({ preventScroll: true });
+  }
+
+  function sign() {
+    setApproveOpen(false);
+    update({ signedAt: new Date().toISOString() });
+  }
+
+  const payerMissing = missing.filter((i) => i.payerCritical).length;
 
   return (
-    <main className="review-preview">
-      <header className="review-preview-head">
+    <div className="review">
+      <header className="review-bar">
         <div>
-          <p className="eyebrow">Review note</p>
-          <h1>{session.patient.name} · {type.name}</h1>
+          <h1>Review note</h1>
+          <p>{title} · recorded {formatDuration(session.transcript.durationSec)}</p>
         </div>
-        <button type="button" className="btn" onClick={() => navigate('/')}>New encounter</button>
+        <div className="review-bar-actions">
+          <button type="button" className="btn btn-bar" onClick={() => setToast('Draft saved')}>Save draft</button>
+          <button
+            type="button"
+            className="btn btn-primary btn-bar"
+            onClick={() => (missing.length ? setApproveOpen(true) : sign())}
+          >
+            Approve and sign
+          </button>
+        </div>
       </header>
 
-      {missing.length > 0 && (
-        <p className="review-preview-missing">
-          <b>{missing.length} required item{missing.length === 1 ? '' : 's'} missing:</b>{' '}
-          {missing.map((i) => i.label).join(', ')}
-        </p>
-      )}
+      <p className={`toast ${toast ? 'is-visible' : ''}`} role="status">{toast}</p>
 
-      {SECTIONS.map(({ key, label }) => (
-        <section key={key} className="review-preview-section">
-          <h2>{label}</h2>
-          {note.sections[key].length === 0 ? (
-            <p className="muted">Nothing captured.</p>
-          ) : (
-            <ul>
-              {note.sections[key].map((s) => (
-                <li key={s.id}>{s.text}</li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ))}
-      <p className="muted">Evidence links and filling gaps come in the review step.</p>
-    </main>
+      <div className="review-body">
+        {missing.length > 0 ? (
+          <div className="review-banner is-warning">
+            <Icon name="alert" size={22} />
+            <p>
+              <b>{missing.length} required item{missing.length === 1 ? '' : 's'} missing:</b>{' '}
+              {missing.map((i) => i.label).join(', ')}.
+              {payerMissing > 0 &&
+                (payerMissing === missing.length
+                  ? ` Payers commonly deny claims without ${missing.length === 1 ? 'it' : 'these'}.`
+                  : ` ${payerMissing} of them ${payerMissing === 1 ? 'is' : 'are'} commonly required by payers.`)}
+            </p>
+            <button type="button" className="btn-link" onClick={() => goToGap(missing[0])}>
+              Go to {missing.length === 1 ? 'item' : 'first item'}
+            </button>
+          </div>
+        ) : (
+          <div className="review-banner is-ok">
+            <Icon name="check" size={22} strokeWidth={2.5} />
+            <p><b>Everything on the checklist is documented.</b> Check the statements, then sign.</p>
+          </div>
+        )}
+
+        <div className="review-grid">
+          <article className="note" aria-label="Clinical note" ref={noteRef}>
+            {SOAP_SECTIONS.map(({ key, label }) => {
+              const statements = note.sections[key];
+              const gaps = missing.filter((i) => i.soap === key);
+              return (
+                <section key={key} className="note-section" aria-labelledby={`h-${key}`}>
+                  <h2 id={`h-${key}`}>{label}</h2>
+                  {statements.length === 0 && gaps.length === 0 && <p className="note-empty">Nothing documented.</p>}
+                  {statements.length > 0 && (
+                    <ul className="stmt-list">
+                      {statements.map((s) => (
+                        <StatementRow
+                          key={s.id}
+                          statement={s}
+                          evidenceAt={segmentStart.get(s.sourceSegmentIds[0])}
+                          selected={s.id === selectedId}
+                          onSelect={() => setSelectedId(s.id === selectedId ? undefined : s.id)}
+                          onSave={(text) => saveStatement(key, s.id, text)}
+                          onRemove={() => removeStatement(key, s)}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                  {gaps.map((item) => (
+                    <GapCard
+                      key={item.id}
+                      item={item}
+                      ref={(el) => {
+                        if (el) gapRefs.current.set(item.id, el);
+                        else gapRefs.current.delete(item.id);
+                      }}
+                      onAdd={(text) => fillGap(item, text)}
+                    />
+                  ))}
+                </section>
+              );
+            })}
+          </article>
+
+          <TranscriptPanel
+            transcript={session.transcript}
+            highlightedIds={selected?.sourceSegmentIds ?? []}
+            flags={session.flags ?? []}
+            selectedWithoutSource={!!selected && selected.sourceSegmentIds.length === 0}
+          />
+        </div>
+      </div>
+
+      <ApproveDialog
+        open={approveOpen}
+        missing={missing}
+        onGoToItem={() => {
+          setApproveOpen(false);
+          requestAnimationFrame(() => goToGap(missing[0]));
+        }}
+        onApprove={sign}
+        onClose={() => setApproveOpen(false)}
+      />
+    </div>
   );
 }

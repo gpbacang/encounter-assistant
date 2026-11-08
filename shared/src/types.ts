@@ -62,6 +62,10 @@ export interface NoteStatement {
   sourceSegmentIds: string[];
   /** The checklist item this statement satisfies, if any. */
   itemId?: string;
+  /** Written by the clinician during review, rather than drafted from the transcript. */
+  origin?: 'ai' | 'clinician';
+  /** A drafted statement the clinician changed. */
+  edited?: boolean;
 }
 
 export interface ClinicalNote {

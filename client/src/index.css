@@ -154,3 +154,73 @@ button {
   background: var(--warn-soft);
   color: var(--warn);
 }
+
+/* ---------- Shared controls ---------- */
+
+.btn-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.9375rem;
+  padding: 0 var(--space-4);
+  white-space: nowrap;
+}
+
+.btn-dark {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.btn-compact {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  font-size: 0.9375rem;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Text-style button for secondary actions. */
+.btn-link {
+  border: 0;
+  background: transparent;
+  padding: 0 var(--space-1);
+  min-height: 44px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.btn-danger-link {
+  color: var(--danger);
+  margin-left: auto;
+}
+
+/* Transient confirmation under the top bar. */
+.toast {
+  position: fixed;
+  top: 88px;
+  left: 50%;
+  transform: translate(-50%, -8px);
+  background: var(--navy);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms, transform 160ms;
+  z-index: 5;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
