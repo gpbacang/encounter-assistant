@@ -48,6 +48,7 @@ export function ProgressCard({ covered, total, payerLeft }: { covered: number; t
       <div
         className="progress-track"
         role="progressbar"
+        aria-label="Required items covered"
         aria-valuemin={0}
         aria-valuemax={total}
         aria-valuenow={covered}

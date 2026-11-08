@@ -31,7 +31,9 @@
 }
 
 .rec-patient-name {
+  font-size: var(--text-base);
   font-weight: 600;
+  line-height: 1.5;
 }
 
 .rec-patient-type {
@@ -570,7 +572,11 @@
     min-height: 100vh;
     overflow: visible;
   }
+  /* Keep the recording state and controls in reach while the page scrolls. */
   .rec-bar {
+    position: sticky;
+    top: 0;
+    z-index: 4;
     grid-template-columns: 1fr;
     justify-items: start;
     gap: var(--space-3);
@@ -581,6 +587,11 @@
   }
   .live-main {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .transcript {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
   }
   .next-up-title {
     font-size: 2rem;

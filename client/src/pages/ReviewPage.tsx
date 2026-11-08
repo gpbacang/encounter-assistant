@@ -174,13 +174,14 @@ export function ReviewPage() {
 
       <p className={`toast ${toast ? 'is-visible' : ''}`} role="status">{toast}</p>
 
-      <div className="review-body">
+      <main className="review-body">
         {missing.length > 0 ? (
           <div className="review-banner is-warning">
             <Icon name="alert" size={22} />
             <p>
-              <b>{missing.length} required item{missing.length === 1 ? '' : 's'} missing:</b>{' '}
-              {missing.map((i) => i.label).join(', ')}.
+              <b>{missing.length} required item{missing.length === 1 ? '' : 's'} missing</b>
+              {/* Name them when there are a few; past that the gap cards do the listing. */}
+              {missing.length <= 3 ? `: ${missing.map((i) => i.label).join(', ')}.` : '. Each one is marked in the note below.'}
               {payerMissing > 0 &&
                 (payerMissing === missing.length
                   ? ` Payers commonly deny claims without ${missing.length === 1 ? 'it' : 'these'}.`
@@ -244,7 +245,7 @@ export function ReviewPage() {
             selectedWithoutSource={!!selected && selected.sourceSegmentIds.length === 0}
           />
         </div>
-      </div>
+      </main>
 
       <ApproveDialog
         open={approveOpen}

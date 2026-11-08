@@ -26,7 +26,7 @@ export function TranscriptStrip({ heard, speaking }: Props) {
   return (
     <section className={`transcript ${open ? 'is-open' : ''}`} aria-label="Live transcript">
       {open && (
-        <ol id="transcript-list" ref={listRef} className="transcript-list">
+        <ol id="transcript-list" ref={listRef} className="transcript-list" tabIndex={0} aria-label="Transcript so far">
           {heard.map((s) => (
             <li key={s.id}>
               <span className="transcript-time">{formatClock(s.start)}</span>

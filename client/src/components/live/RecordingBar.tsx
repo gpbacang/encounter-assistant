@@ -17,13 +17,14 @@ export function RecordingBar({ patientName, encounterName, status, elapsed, onFl
   return (
     <header className="rec-bar">
       <div className="rec-patient">
-        <span className="rec-patient-name">{patientName}</span>
+        <h1 className="rec-patient-name">{patientName}</h1>
         <span className="rec-patient-type">{encounterName}</span>
       </div>
 
-      <div className={`rec-status ${recording ? 'is-recording' : 'is-paused'}`} role="status">
+      <div className={`rec-status ${recording ? 'is-recording' : 'is-paused'}`}>
         {recording ? <span className="rec-dot" aria-hidden="true" /> : <Icon name="pause" size={14} strokeWidth={3} />}
-        <span className="rec-label">{recording ? 'Recording' : 'Paused'}</span>
+        {/* Only the state is announced; the ticking clock would be noise for screen readers. */}
+        <span className="rec-label" role="status">{recording ? 'Recording' : 'Paused'}</span>
         <span className="rec-clock" aria-label={`Elapsed ${formatClock(elapsed)}`}>{formatClock(elapsed)}</span>
         <span className="rec-wave" aria-hidden="true">
           {Array.from({ length: 8 }, (_, i) => (

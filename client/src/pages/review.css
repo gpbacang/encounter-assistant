@@ -502,6 +502,11 @@
   background: var(--accent-soft);
 }
 
+.tp-empty {
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+}
+
 .tp-time {
   flex-shrink: 0;
   width: 44px;
@@ -511,7 +516,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-.is-evidence .tp-time {
+.is-evidence .tp-empty {
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+}
+
+.tp-time {
   color: var(--accent);
   font-weight: 600;
 }

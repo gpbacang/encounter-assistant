@@ -55,7 +55,8 @@ export function TranscriptPanel({ transcript, highlightedIds, flags, selectedWit
         </p>
       </div>
 
-      <ol className="transcript-panel-list" ref={listRef}>
+      {transcript.segments.length === 0 && <p className="tp-empty">Nothing was recorded, so there’s no transcript.</p>}
+      <ol className="transcript-panel-list" ref={listRef} tabIndex={0} aria-label="Transcript">
         {transcript.segments.map((s) => {
           const on = highlightedIds.includes(s.id);
           return (

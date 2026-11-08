@@ -11,7 +11,7 @@ interface Props {
 /** The right column: what's left, then what's done. Read-only by design. */
 export function ChecklistStatus({ open, covered, suggestedId }: Props) {
   return (
-    <section className="status-panel" aria-label="Checklist">
+    <section className="status-panel" aria-label="Checklist" tabIndex={0}>
       <h2 className="status-heading">Still to cover</h2>
       {open.length === 0 ? (
         <p className="status-empty">Nothing left.</p>
