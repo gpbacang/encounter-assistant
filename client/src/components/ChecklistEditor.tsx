@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
+import { ActionIcon, Badge, Button, Group, Text, TextInput, VisuallyHidden } from '@mantine/core';
 import { canHide, type RequiredItem } from '@encounter/shared';
 import { Icon } from './Icon';
 import './checklist-editor.css';
@@ -25,15 +26,10 @@ export function ChecklistEditor({ templateItems, hiddenIds, customItems, onHide,
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const [announcement, setAnnouncement] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
 
   const visible = templateItems.filter((i) => !(hiddenIds.has(i.id) && canHide(i)));
   const hidden = templateItems.filter((i) => hiddenIds.has(i.id) && canHide(i));
-
-  useEffect(() => {
-    if (adding) inputRef.current?.focus();
-  }, [adding]);
 
   // When the focused button disappears (hide/remove), keep focus in the list.
   function refocus() {
@@ -64,28 +60,29 @@ export function ChecklistEditor({ templateItems, hiddenIds, customItems, onHide,
     closeForm();
   }
 
-  function onInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Escape') closeForm();
-  }
-
   return (
     <div className="checklist-editor">
       <ul className="capture-list">
         {visible.map((item) => (
           <li key={item.id}>
-            <span>{item.label}</span>
+            <Text fz="sm">{item.label}</Text>
             {item.payerCritical && (
-              <span className="tag tag-payer" title="Commonly required by payers, so it can’t be removed">
-                <Icon name="lock" size={11} strokeWidth={2.5} />
+              <Badge
+                color="amber"
+                leftSection={<Icon name="lock" size={11} strokeWidth={2.5} />}
+                title="Commonly required by payers, so it can’t be removed"
+              >
                 Payer
-              </span>
+              </Badge>
             )}
             {canHide(item) && (
-              <span className="item-actions">
-                <span className="tag">Optional</span>
-                <button
-                  type="button"
-                  className="icon-btn"
+              <Group gap={4} wrap="nowrap">
+                <Badge color="gray">Optional</Badge>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size={36}
+                  radius="xl"
                   aria-label={`Hide “${item.label}” for this visit`}
                   title="Hide for this visit"
                   onClick={() => {
@@ -95,19 +92,21 @@ export function ChecklistEditor({ templateItems, hiddenIds, customItems, onHide,
                   }}
                 >
                   <Icon name="close" size={14} strokeWidth={2.5} />
-                </button>
-              </span>
+                </ActionIcon>
+              </Group>
             )}
           </li>
         ))}
         {customItems.map((item) => (
           <li key={item.id}>
-            <span>{item.label}</span>
-            <span className="item-actions">
-              <span className="tag tag-added">Added by you</span>
-              <button
-                type="button"
-                className="icon-btn"
+            <Text fz="sm">{item.label}</Text>
+            <Group gap={4} wrap="nowrap">
+              <Badge color="everi">Added by you</Badge>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size={36}
+                radius="xl"
                 aria-label={`Remove “${item.label}”`}
                 title="Remove"
                 onClick={() => {
@@ -117,61 +116,67 @@ export function ChecklistEditor({ templateItems, hiddenIds, customItems, onHide,
                 }}
               >
                 <Icon name="close" size={14} strokeWidth={2.5} />
-              </button>
-            </span>
+              </ActionIcon>
+            </Group>
           </li>
         ))}
       </ul>
 
       {hidden.length > 0 && (
-        <p className="hidden-note">
-          <span>Hidden for this visit:</span>
+        <Group gap="xs" className="hidden-note">
+          <Text fz="sm" c="dimmed">Hidden for this visit:</Text>
           {hidden.map((item) => (
-            <button
+            <Button
               key={item.id}
-              type="button"
-              className="restore-btn"
-              aria-label={`Restore “${item.label}”`}
+              variant="default"
+              size="compact-sm"
               onClick={() => {
                 onRestore(item);
                 setAnnouncement(`Restored “${item.label}”.`);
               }}
             >
               {item.label} · Restore
-            </button>
+            </Button>
           ))}
-        </p>
+        </Group>
       )}
 
       {adding ? (
         <form className="add-form" onSubmit={submit} noValidate>
-          <label htmlFor="new-item" className="sr-only">New checklist item</label>
-          <input
+          <TextInput
             id="new-item"
-            ref={inputRef}
+            aria-label="New checklist item"
+            data-autofocus
+            autoFocus
             value={draft}
             maxLength={MAX_LABEL}
             placeholder="e.g. Phantom pain since surgery"
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? 'new-item-error' : undefined}
+            error={error || undefined}
             onChange={(e) => {
-              setDraft(e.target.value);
+              setDraft(e.currentTarget.value);
               if (error) setError('');
             }}
-            onKeyDown={onInputKeyDown}
+            onKeyDown={(e) => e.key === 'Escape' && closeForm()}
+            style={{ flex: '1 1 220px' }}
           />
-          <button type="submit" className="btn btn-primary btn-compact">Add</button>
-          <button type="button" className="btn btn-compact" onClick={closeForm}>Cancel</button>
-          {error && <p id="new-item-error" className="add-error">{error}</p>}
+          <Group gap="xs" align="flex-start">
+            <Button type="submit">Add</Button>
+            <Button variant="default" onClick={closeForm}>Cancel</Button>
+          </Group>
         </form>
       ) : (
-        <button ref={addButtonRef} type="button" className="add-btn" onClick={() => setAdding(true)}>
-          <Icon name="plus" size={16} strokeWidth={2.5} />
+        <Button
+          ref={addButtonRef}
+          variant="subtle"
+          className="add-btn"
+          leftSection={<Icon name="plus" size={16} strokeWidth={2.5} />}
+          onClick={() => setAdding(true)}
+        >
           Add item for this visit
-        </button>
+        </Button>
       )}
 
-      <p className="sr-only" aria-live="polite">{announcement}</p>
+      <VisuallyHidden aria-live="polite">{announcement}</VisuallyHidden>
     </div>
   );
 }

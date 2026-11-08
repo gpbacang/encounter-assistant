@@ -1,3 +1,4 @@
+import { Badge, Paper } from '@mantine/core';
 import type { RequiredItem } from '@encounter/shared';
 import { formatClock } from '../../hooks/useSimulatedRecording';
 import { Icon } from '../Icon';
@@ -9,25 +10,25 @@ import { Icon } from '../Icon';
 export function NextUpCard({ item }: { item?: RequiredItem }) {
   if (!item) {
     return (
-      <section className="next-up next-up-done" aria-live="polite">
+      <Paper component="section" className="next-up next-up-done" aria-live="polite">
         <span className="next-up-eyebrow">All covered</span>
         <p className="next-up-title">Everything on the checklist is captured</p>
         <p className="next-up-prompt">End the visit whenever you’re ready.</p>
-      </section>
+      </Paper>
     );
   }
   return (
-    <section className="next-up" aria-live="polite" aria-labelledby="next-up-title">
+    <Paper component="section" className="next-up" aria-live="polite" aria-labelledby="next-up-title">
       <div className="next-up-meta">
         <span className="next-up-eyebrow">Suggested next</span>
-        {item.payerCritical && <span className="tag tag-payer">Payer</span>}
-        {item.priority === 'recommended' && <span className="tag">Optional</span>}
-        {item.addedByClinician && <span className="tag tag-added">Added by you</span>}
+        {item.payerCritical && <Badge color="amber" leftSection={<Icon name="lock" size={11} strokeWidth={2.5} />}>Payer</Badge>}
+        {item.priority === 'recommended' && <Badge color="gray">Optional</Badge>}
+        {item.addedByClinician && <Badge color="everi">Added by you</Badge>}
       </div>
       <p id="next-up-title" className="next-up-title">{item.label}</p>
       {item.prompt !== item.label && <p className="next-up-prompt">{item.prompt}</p>}
       <p className="next-up-why">{item.why}</p>
-    </section>
+    </Paper>
   );
 }
 
@@ -40,7 +41,7 @@ export function ProgressCard({ covered, total, payerLeft }: { covered: number; t
         ? `${left} left, ${left === 1 ? 'payer-critical' : `all payer-critical`}`
         : `${left} left${payerLeft ? `, ${payerLeft} payer-critical` : ''}`;
   return (
-    <section className="progress-card" aria-label="Progress">
+    <Paper component="section" className="progress-card" aria-label="Progress">
       <div className="progress-head">
         <span className="progress-count">{covered} of {total} required covered</span>
         <span className="progress-detail">{detail}</span>
@@ -59,7 +60,7 @@ export function ProgressCard({ covered, total, payerLeft }: { covered: number; t
           <span key={i} className={i < covered ? 'is-filled' : undefined} />
         ))}
       </div>
-    </section>
+    </Paper>
   );
 }
 

@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
+import { Badge, Button, Group, Textarea } from '@mantine/core';
 import type { RequiredItem } from '@encounter/shared';
 import { mockDictations } from '../../data/mockDictations';
 import { Icon } from '../Icon';
@@ -53,18 +54,17 @@ export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item
     <div className={`gap ${item.payerCritical ? 'is-payer' : ''}`} ref={ref} tabIndex={-1} aria-labelledby={titleId}>
       <div className="gap-head">
         <span id={titleId} className="gap-title">{item.label}</span>
-        <span className="tag tag-payer">{item.payerCritical ? 'Payer · missing' : 'Missing'}</span>
+        <Badge color="amber">{item.payerCritical ? 'Payer · missing' : 'Missing'}</Badge>
       </div>
       {item.prompt !== item.label && <p className="gap-prompt">{item.prompt}</p>}
 
       {mode === 'idle' && (
-        <div className="gap-actions">
-          <button type="button" className="btn btn-dark btn-compact btn-icon" onClick={() => setMode('listening')}>
-            <Icon name="mic" size={16} />
+        <Group gap="xs" mt="sm">
+          <Button color="navy" leftSection={<Icon name="mic" size={16} />} onClick={() => setMode('listening')}>
             Dictate
-          </button>
-          <button type="button" className="btn btn-compact" onClick={() => setMode('writing')}>Type it</button>
-        </div>
+          </Button>
+          <Button variant="default" onClick={() => setMode('writing')}>Type it</Button>
+        </Group>
       )}
 
       {mode === 'listening' && (
@@ -73,7 +73,7 @@ export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item
             {Array.from({ length: 6 }, (_, i) => <span key={i} />)}
           </span>
           Listening…
-          <button type="button" className="btn-link" onClick={reset}>Cancel</button>
+          <Button variant="subtle" size="compact-md" onClick={reset}>Cancel</Button>
         </div>
       )}
 
@@ -85,21 +85,21 @@ export const GapCard = forwardRef<HTMLDivElement, Props>(function GapCard({ item
             if (draft.trim()) onAdd(draft.trim());
           }}
         >
-          <label className="sr-only" htmlFor={`${titleId}-text`}>{item.label}</label>
-          <textarea
+          <Textarea
             id={`${titleId}-text`}
             ref={textareaRef}
-            rows={3}
+            aria-label={item.label}
+            autosize
+            minRows={3}
             value={draft}
-            aria-describedby={hint ? `${titleId}-hint` : undefined}
-            onChange={(e) => setDraft(e.target.value)}
+            description={hint || undefined}
+            onChange={(e) => setDraft(e.currentTarget.value)}
             onKeyDown={(e) => e.key === 'Escape' && reset()}
           />
-          {hint && <p id={`${titleId}-hint`} className="gap-hint">{hint}</p>}
-          <div className="gap-actions">
-            <button type="submit" className="btn btn-primary btn-compact" disabled={!draft.trim()}>Add to note</button>
-            <button type="button" className="btn btn-compact" onClick={reset}>Cancel</button>
-          </div>
+          <Group gap="xs">
+            <Button type="submit" disabled={!draft.trim()}>Add to note</Button>
+            <Button variant="default" onClick={reset}>Cancel</Button>
+          </Group>
         </form>
       )}
     </div>

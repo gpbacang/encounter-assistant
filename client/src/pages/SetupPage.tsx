@@ -1,5 +1,18 @@
 import { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  Avatar,
+  Button,
+  Checkbox,
+  Container,
+  Group,
+  Paper,
+  Radio,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
 import { buildChecklist, createCustomItem, encounterTypes, type RequiredItem } from '@encounter/shared';
 import { ChecklistEditor } from '../components/ChecklistEditor';
 import { Icon } from '../components/Icon';
@@ -44,89 +57,107 @@ export function SetupPage() {
   }
 
   return (
-    <main className="setup">
-      <header className="setup-header">
-        <div>
-          <p className="eyebrow">New encounter</p>
-          <h1>Set up the visit</h1>
-        </div>
-        <div className="clinician">
-          <span className="avatar" aria-hidden="true">ES</span>
-          <span>E. Sandberg, CPO</span>
-        </div>
-      </header>
+    <Container component="main" size={1180} px={{ base: 'md', sm: 40 }} py="xl">
+      <Stack gap="xl">
+        <Group justify="space-between" align="flex-end">
+          <Stack gap={4}>
+            <Text className="eyebrow">New encounter</Text>
+            <Title order={1} fz={32}>Set up the visit</Title>
+          </Stack>
+          <Group gap="sm">
+            <Avatar color="everi" radius="xl" aria-hidden="true">ES</Avatar>
+            <Text c="dimmed" fz="sm">E. Sandberg, CPO</Text>
+          </Group>
+        </Group>
 
-      <div className="setup-grid">
-        <div className="setup-choices">
-          <fieldset>
-            <legend>Patient</legend>
-            <div className="patient-list">
-              {mockPatients.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className="option"
-                  aria-pressed={p.id === patientId}
-                  onClick={() => setPatientId(p.id)}
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing={32}>
+          <Stack gap="xl">
+            <Radio.Group
+              value={patientId}
+              onChange={setPatientId}
+              label="Patient"
+              labelProps={{ fz: 'lg', fw: 600, mb: 'sm' }}
+            >
+              <Stack gap="sm">
+                {mockPatients.map((p) => (
+                  <Radio.Card key={p.id} value={p.id} p="md" className="choice-card">
+                    <Group wrap="nowrap" align="flex-start" gap="md">
+                      <Radio.Indicator mt={2} />
+                      <div>
+                        <Text fw={600}>{p.name} · {p.age}</Text>
+                        <Text fz="sm" c="dimmed">{p.detail}</Text>
+                      </div>
+                    </Group>
+                  </Radio.Card>
+                ))}
+              </Stack>
+            </Radio.Group>
+
+            <Radio.Group
+              value={typeId}
+              onChange={setTypeId}
+              label="Encounter type"
+              labelProps={{ fz: 'lg', fw: 600, mb: 'sm' }}
+            >
+              <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
+                {encounterTypes.map((t) => (
+                  <Radio.Card key={t.id} value={t.id} p="md" className="choice-card type-card">
+                    <Stack gap={6} h="100%">
+                      <Group wrap="nowrap" gap="xs" align="flex-start">
+                        <Radio.Indicator size="sm" mt={3} />
+                        <Text fw={600} lh={1.3}>{t.name}</Text>
+                      </Group>
+                      <Text fz="sm" c="dimmed" lh={1.4}>{t.summary}</Text>
+                      <Text fz="sm" c="dimmed" mt="auto">~{t.typicalMinutes} min</Text>
+                    </Stack>
+                  </Radio.Card>
+                ))}
+              </SimpleGrid>
+            </Radio.Group>
+          </Stack>
+
+          <Paper p={{ base: 'lg', sm: 'xl' }} component="section" aria-labelledby="capture-heading">
+            <Stack gap="md">
+              <div>
+                <Title order={2} id="capture-heading" fz="lg">What we’ll help you capture</Title>
+                <Text fz="sm" c="dimmed" mt={4}>
+                  {requiredCount} required items; the {payerCount} checked by payers are locked. Everything ticks
+                  off on its own as the conversation covers it.
+                </Text>
+              </div>
+
+              <ChecklistEditor
+                templateItems={type.items}
+                hiddenIds={hiddenIds}
+                customItems={customItems}
+                onHide={(item) => setHidden(item.id, true)}
+                onRestore={(item) => setHidden(item.id, false)}
+                onAdd={(label) => setCustomItems((prev) => [...prev, createCustomItem(label, `custom-${nextCustomId.current++}`)])}
+                onRemove={(item) => setCustomItems((prev) => prev.filter((i) => i.id !== item.id))}
+              />
+
+              <Stack gap="md" mt="xs">
+                <Checkbox
+                  id="consent"
+                  size="md"
+                  checked={consented}
+                  onChange={(e) => setConsented(e.currentTarget.checked)}
+                  label="Patient has agreed to the visit being recorded"
+                />
+                <Button
+                  size="lg"
+                  fullWidth
+                  disabled={!consented}
+                  onClick={handleStart}
+                  leftSection={<Icon name="mic" size={20} />}
                 >
-                  <span className="option-title">{p.name} · {p.age}</span>
-                  <span className="option-detail">{p.detail}</span>
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend>Encounter type</legend>
-            <div className="type-grid">
-              {encounterTypes.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="option option-type"
-                  aria-pressed={t.id === typeId}
-                  onClick={() => setTypeId(t.id)}
-                >
-                  <span className="option-title">{t.name}</span>
-                  <span className="option-detail">{t.summary}</span>
-                  <span className="option-detail option-time">~{t.typicalMinutes} min</span>
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        </div>
-
-        <section className="capture" aria-labelledby="capture-heading">
-          <div>
-            <h2 id="capture-heading">What we’ll help you capture</h2>
-            <p className="capture-summary">
-              {requiredCount} required items; the {payerCount} checked by payers are locked. Everything ticks
-              off on its own as the conversation covers it.
-            </p>
-          </div>
-
-          <ChecklistEditor
-            templateItems={type.items}
-            hiddenIds={hiddenIds}
-            customItems={customItems}
-            onHide={(item) => setHidden(item.id, true)}
-            onRestore={(item) => setHidden(item.id, false)}
-            onAdd={(label) => setCustomItems((prev) => [...prev, createCustomItem(label, `custom-${nextCustomId.current++}`)])}
-            onRemove={(item) => setCustomItems((prev) => prev.filter((i) => i.id !== item.id))}
-          />
-
-          <div className="capture-footer">
-            <label className="consent">
-              <input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} />
-              Patient has agreed to the visit being recorded
-            </label>
-            <button type="button" className="btn btn-primary btn-large" disabled={!consented} onClick={handleStart}>
-              <Icon name="mic" size={20} />
-              Start recording
-            </button>
-          </div>
-        </section>
-      </div>
-    </main>
+                  Start recording
+                </Button>
+              </Stack>
+            </Stack>
+          </Paper>
+        </SimpleGrid>
+      </Stack>
+    </Container>
   );
 }

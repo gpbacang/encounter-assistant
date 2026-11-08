@@ -76,25 +76,6 @@
   color: #fff;
 }
 
-.spinner {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 2px solid transparent;
-  border-top-color: var(--accent);
-  animation: spin 800ms linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation-duration: 2.4s;
-  }
-}
-
 .processing-error {
   margin-top: var(--space-2);
   padding: var(--space-4);
@@ -123,32 +104,10 @@
   text-align: center;
 }
 
-.signed-badge {
-  width: 56px;
-  height: 56px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  display: grid;
-  place-items: center;
-}
-
-.signed-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
-}
-
 .signed-hint {
   min-height: 20px;
   font-size: var(--text-sm);
   color: var(--ink-muted);
-}
-
-.signed .btn-large {
-  align-self: stretch;
 }
 
 /* ---------- Review layout ---------- */
@@ -218,11 +177,6 @@
 .review-banner.is-warning p,
 .review-banner.is-ok p {
   color: var(--ink);
-}
-
-.review-banner.is-warning .btn-link {
-  color: #8a5100;
-  flex-shrink: 0;
 }
 
 .review-banner.is-ok {
@@ -355,33 +309,6 @@
   padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-}
-
-.stmt textarea,
-.gap textarea {
-  width: 100%;
-  font: inherit;
-  font-size: 0.9375rem;
-  line-height: 1.47;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-  resize: vertical;
-}
-
-.stmt textarea:focus-visible,
-.gap textarea:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 0;
-  border-color: var(--accent);
-}
-
-.stmt-edit-actions {
-  display: flex;
-  align-items: center;
   gap: var(--space-2);
 }
 
@@ -537,7 +464,6 @@
 
 .tp-play {
   align-self: flex-start;
-  color: var(--accent);
 }
 
 @media (prefers-reduced-motion: reduce) {

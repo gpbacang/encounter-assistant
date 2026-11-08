@@ -1,3 +1,4 @@
+import { Button } from '@mantine/core';
 import { formatClock, type RecordingStatus } from '../../hooks/useSimulatedRecording';
 import { Icon } from '../Icon';
 
@@ -34,15 +35,13 @@ export function RecordingBar({ patientName, encounterName, status, elapsed, onFl
       </div>
 
       <div className="rec-actions">
-        <button type="button" className="btn btn-bar" onClick={onFlag}>
-          <Icon name="flag" />
+        <Button variant="default" size="lg" leftSection={<Icon name="flag" />} onClick={onFlag}>
           Flag moment
-        </button>
-        <button type="button" className="btn btn-bar" onClick={onTogglePause}>
-          <Icon name={recording ? 'pause' : 'play'} />
+        </Button>
+        <Button variant="default" size="lg" leftSection={<Icon name={recording ? 'pause' : 'play'} />} onClick={onTogglePause}>
           {recording ? 'Pause' : 'Resume'}
-        </button>
-        <button type="button" className="btn btn-bar btn-dark" onClick={onEnd}>End visit</button>
+        </Button>
+        <Button color="navy" size="lg" onClick={onEnd}>End visit</Button>
       </div>
     </header>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Button, Paper, VisuallyHidden } from '@mantine/core';
 import type { Transcript } from '@encounter/shared';
 import { formatClock } from '../../hooks/useSimulatedRecording';
 import { scrollWithin } from '../../scrollWithin';
@@ -43,7 +44,7 @@ export function TranscriptPanel({ transcript, highlightedIds, flags, selectedWit
   useEffect(() => setPlayingFrom(null), [first?.id]);
 
   return (
-    <section className="transcript-panel" aria-labelledby="transcript-heading">
+    <Paper component="section" className="transcript-panel" aria-labelledby="transcript-heading">
       <div className="transcript-panel-head">
         <h2 id="transcript-heading">Transcript</h2>
         <p>
@@ -71,12 +72,12 @@ export function TranscriptPanel({ transcript, highlightedIds, flags, selectedWit
               <span className="tp-time">{formatClock(s.start)}</span>
               <span className="tp-text">
                 <b>{s.speaker === 'clinician' ? 'Clinician' : 'Patient'}</b> · {s.text}
-                {on && <span className="sr-only"> (evidence)</span>}
+                {on && <VisuallyHidden> (evidence)</VisuallyHidden>}
               </span>
               {flagged.has(s.id) && (
                 <span className="tp-flag" title="You flagged this moment">
                   <Icon name="flag" size={14} />
-                  <span className="sr-only">Flagged</span>
+                  <VisuallyHidden>Flagged</VisuallyHidden>
                 </span>
               )}
             </li>
@@ -85,15 +86,15 @@ export function TranscriptPanel({ transcript, highlightedIds, flags, selectedWit
       </ol>
 
       {first && (
-        <button
-          type="button"
-          className="btn btn-compact btn-icon tp-play"
+        <Button
+          variant="light"
+          className="tp-play"
+          leftSection={<Icon name={playingFrom === null ? 'play' : 'pause'} size={16} />}
           onClick={() => setPlayingFrom(playingFrom === null ? first.start : null)}
         >
-          <Icon name={playingFrom === null ? 'play' : 'pause'} size={16} />
           {playingFrom === null ? `Play from ${formatClock(first.start)}` : `Playing from ${formatClock(playingFrom)}…`}
-        </button>
+        </Button>
       )}
-    </section>
+    </Paper>
   );
 }

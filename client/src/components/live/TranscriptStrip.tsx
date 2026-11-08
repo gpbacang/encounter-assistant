@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@mantine/core';
 import type { TranscriptSegment } from '@encounter/shared';
 import { formatClock } from '../../hooks/useSimulatedRecording';
 import { Icon } from '../Icon';
@@ -48,16 +49,16 @@ export function TranscriptStrip({ heard, speaking }: Props) {
             {latest ? `${speakerLabel(latest.segment.speaker)}: ${latest.text}` : 'Listening…'}
           </span>
         )}
-        <button
-          type="button"
+        <Button
+          variant="subtle"
           className="transcript-toggle"
+          leftSection={<Icon name={open ? 'chevronDown' : 'chevronUp'} size={16} strokeWidth={2.5} />}
           aria-expanded={open}
           aria-controls="transcript-list"
           onClick={() => setOpen((o) => !o)}
         >
-          <Icon name={open ? 'chevronDown' : 'chevronUp'} size={16} strokeWidth={2.5} />
           {open ? 'Hide transcript' : 'Show transcript'}
-        </button>
+        </Button>
       </div>
     </section>
   );

@@ -1,114 +1,42 @@
 .checklist-editor {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--mantine-spacing-sm);
 }
 
-.item-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.tag-added {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-/* 32px visual, padded to a 44px hit area on touch screens. */
-.icon-btn {
-  position: relative;
-  width: 32px;
-  height: 32px;
+/* Rows share one height so tags and buttons line up down the list. */
+.capture-list {
+  list-style: none;
+  margin: 0;
   padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-muted);
-  display: inline-grid;
-  place-items: center;
 }
 
-.icon-btn::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-}
-
-.icon-btn:hover {
-  background: var(--surface-sunken);
-  color: var(--ink);
-}
-
-.hidden-note {
+.capture-list li {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-  color: var(--ink-muted);
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  min-height: 42px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--surface-sunken);
 }
 
-.restore-btn {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--accent);
-  border-radius: 999px;
-  padding: 4px 12px;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  min-height: 32px;
+.capture-list li:last-child {
+  border-bottom: 0;
 }
 
 .add-btn {
   align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 44px;
-  padding: 0 var(--space-4);
-  border: 1px dashed #99c3e3;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--accent);
-  font-size: 0.9375rem;
-  font-weight: 600;
-}
-
-.add-btn:hover {
-  background: var(--accent-soft);
+  border: 1px dashed var(--mantine-color-everi-2);
 }
 
 .add-form {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--mantine-spacing-xs);
 }
 
-.add-form input {
-  flex: 1 1 220px;
-  min-height: 44px;
-  padding: 0 var(--space-3);
-  font: inherit;
-  font-size: 0.9375rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
-}
-
-.add-form input:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 0;
-  border-color: var(--accent);
-}
-
-.add-form input[aria-invalid='true'] {
-  border-color: var(--danger);
-}
-
-.add-error {
-  flex-basis: 100%;
-  font-size: var(--text-sm);
-  color: var(--danger);
+/* Tags and buttons keep their size; the label wraps instead. */
+.capture-list li > :not(:first-child) {
+  flex-shrink: 0;
 }

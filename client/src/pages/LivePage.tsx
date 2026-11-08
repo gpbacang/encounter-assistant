@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { notifications } from '@mantine/notifications';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
   detectCoverage,
@@ -12,6 +13,7 @@ import { ChecklistStatus } from '../components/live/ChecklistStatus';
 import { JustCaptured, NextUpCard, ProgressCard } from '../components/live/GuidancePanel';
 import { RecordingBar } from '../components/live/RecordingBar';
 import { TranscriptStrip } from '../components/live/TranscriptStrip';
+import { Icon } from '../components/Icon';
 import { WrapUpDialog } from '../components/live/WrapUpDialog';
 import { formatClock, useSimulatedRecording } from '../hooks/useSimulatedRecording';
 import { useSession } from '../session';
@@ -37,7 +39,6 @@ export function LivePage() {
   const rec = useSimulatedRecording(transcript, speed);
 
   const [flags, setFlags] = useState<number[]>([]);
-  const [toast, setToast] = useState('');
   const [wrapUpOpen, setWrapUpOpen] = useState(false);
 
   const view = useMemo(() => {
@@ -63,13 +64,7 @@ export function LivePage() {
     };
   }, [checklist, rec.heard]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const id = window.setTimeout(() => setToast(''), 3000);
-    return () => window.clearTimeout(id);
-  }, [toast]);
-
-  if (!session.patient || !type || !session.checklist) return <Navigate to="/" replace />;
+  if (!session.patient || !type || !session.checklist) return <Navigate to={`/${location.search}`} replace />;
 
   const latest = view.covered[view.covered.length - 1];
   const showCaptured = latest && rec.elapsed - latest.at < CAPTURED_VISIBLE_FOR;
@@ -90,7 +85,11 @@ export function LivePage() {
 
   function handleFlag() {
     setFlags((f) => [...f, rec.elapsed]);
-    setToast(`Moment flagged at ${formatClock(rec.elapsed)}`);
+    notifications.show({
+      message: `Moment flagged at ${formatClock(rec.elapsed)}`,
+      color: 'navy',
+      icon: <Icon name="flag" size={16} />,
+    });
   }
 
   return (
@@ -104,8 +103,6 @@ export function LivePage() {
         onTogglePause={rec.status === 'recording' ? rec.pause : rec.resume}
         onEnd={handleEnd}
       />
-
-      <p className={`toast ${toast ? 'is-visible' : ''}`} role="status">{toast}</p>
 
       <main className="live-main">
         <div className="live-guidance">

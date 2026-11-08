@@ -1,3 +1,4 @@
+import { Paper, VisuallyHidden } from '@mantine/core';
 import type { RequiredItem } from '@encounter/shared';
 import { formatClock } from '../../hooks/useSimulatedRecording';
 import { Icon } from '../Icon';
@@ -11,7 +12,7 @@ interface Props {
 /** The right column: what's left, then what's done. Read-only by design. */
 export function ChecklistStatus({ open, covered, suggestedId }: Props) {
   return (
-    <section className="status-panel" aria-label="Checklist" tabIndex={0}>
+    <Paper component="section" className="status-panel" aria-label="Checklist" tabIndex={0}>
       <h2 className="status-heading">Still to cover</h2>
       {open.length === 0 ? (
         <p className="status-empty">Nothing left.</p>
@@ -32,7 +33,7 @@ export function ChecklistStatus({ open, covered, suggestedId }: Props) {
               <span>
                 {item.label}
                 {item.priority === 'recommended' && <span className="status-note"> · optional</span>}
-                {item.payerCritical && <span className="sr-only"> (payer-critical)</span>}
+                {item.payerCritical && <VisuallyHidden> (payer-critical)</VisuallyHidden>}
               </span>
             </li>
           ))}
@@ -53,6 +54,6 @@ export function ChecklistStatus({ open, covered, suggestedId }: Props) {
           ))}
         </ul>
       )}
-    </section>
+    </Paper>
   );
 }

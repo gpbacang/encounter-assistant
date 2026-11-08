@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Badge, Button, Group, Textarea } from '@mantine/core';
 import type { NoteStatement } from '@encounter/shared';
 import { formatClock } from '../../hooks/useSimulatedRecording';
 
@@ -38,13 +39,14 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
   if (editing) {
     return (
       <li className="stmt is-editing">
-        <label className="sr-only" htmlFor={`edit-${statement.id}`}>Edit statement</label>
-        <textarea
+        <Textarea
+          aria-label="Edit statement"
+          autosize
+          minRows={2}
           id={`edit-${statement.id}`}
           ref={textareaRef}
           value={draft}
-          rows={3}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => setDraft(e.currentTarget.value)}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               setDraft(statement.text);
@@ -52,10 +54,8 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
             }
           }}
         />
-        <div className="stmt-edit-actions">
-          <button
-            type="button"
-            className="btn btn-primary btn-compact"
+        <Group gap="xs" className="stmt-edit-actions">
+          <Button
             disabled={!draft.trim()}
             onClick={() => {
               onSave(draft.trim());
@@ -63,19 +63,18 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
             }}
           >
             Save
-          </button>
-          <button
-            type="button"
-            className="btn btn-compact"
+          </Button>
+          <Button
+            variant="default"
             onClick={() => {
               setDraft(statement.text);
               stopEditing();
             }}
           >
             Cancel
-          </button>
-          <button type="button" className="btn-link btn-danger-link" onClick={onRemove}>Remove statement</button>
-        </div>
+          </Button>
+          <Button variant="subtle" color="red" ml="auto" onClick={onRemove}>Remove statement</Button>
+        </Group>
       </li>
     );
   }
@@ -85,8 +84,8 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
       <button type="button" className="stmt-main" aria-pressed={selected} onClick={onSelect}>
         <span className="stmt-text">{statement.text}</span>
         <span className="stmt-meta">
-          {statement.origin === 'clinician' && <span className="tag tag-added">Added by you</span>}
-          {statement.edited && <span className="tag">Edited</span>}
+          {statement.origin === 'clinician' && <Badge color="everi">Added by you</Badge>}
+          {statement.edited && <Badge color="gray">Edited</Badge>}
           {evidenceAt !== undefined ? (
             <span className="stmt-time" aria-label={`From the recording at ${formatClock(evidenceAt)}`}>
               {formatClock(evidenceAt)}
@@ -97,17 +96,18 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
         </span>
       </button>
       {selected && (
-        <button
+        <Button
           ref={editButtonRef}
-          type="button"
-          className="btn-link stmt-edit"
+          variant="subtle"
+          size="compact-md"
+          className="stmt-edit"
           onClick={() => {
             setDraft(statement.text);
             setEditing(true);
           }}
         >
           Edit
-        </button>
+        </Button>
       )}
     </li>
   );

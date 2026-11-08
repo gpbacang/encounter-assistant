@@ -1,5 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { Badge, Button, Group, Text } from '@mantine/core';
 import type { RequiredItem } from '@encounter/shared';
+import { DecisionModal } from '../DecisionModal';
+import { Icon } from '../Icon';
 
 interface Props {
   open: boolean;
@@ -14,41 +16,26 @@ interface Props {
  * visit with required items uncovered. Never blocks: "End anyway" is always
  * there, and gaps can still be filled during review.
  *
- * Uses the native <dialog> for focus trapping and Escape (= keep recording).
+ * Mantine's Modal traps focus and maps Escape / outside click to onClose,
+ * which here means "keep recording", the safe choice.
  */
 export function WrapUpDialog({ open, missing, optionalLeft, onKeepRecording, onEndAnyway }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
   const count = missing.length;
   return (
-    <dialog
-      ref={ref}
-      className="wrapup"
-      aria-labelledby="wrapup-title"
-      onCancel={(e) => {
-        e.preventDefault();
-        onKeepRecording();
-      }}
-    >
-      <h2 id="wrapup-title">Before you wrap up</h2>
-      <p className="wrapup-lead">
+    <DecisionModal opened={open} onClose={onKeepRecording} size={640} title="Before you wrap up">
+      <Text className="wrapup-lead">
         {count} required item{count === 1 ? ' hasn’t' : 's haven’t'} come up yet. Recording is paused.
-      </p>
+      </Text>
 
       <ul className="wrapup-list">
         {missing.map((item) => (
           <li key={item.id} className={item.payerCritical ? 'is-payer' : undefined}>
             <div className="wrapup-item-head">
               <span className="wrapup-item-label">{item.label}</span>
-              {item.payerCritical && <span className="tag tag-payer">Payer</span>}
-              {item.addedByClinician && <span className="tag tag-added">Added by you</span>}
+              {item.payerCritical && (
+                <Badge color="amber" leftSection={<Icon name="lock" size={11} strokeWidth={2.5} />}>Payer</Badge>
+              )}
+              {item.addedByClinician && <Badge color="everi">Added by you</Badge>}
             </div>
             {item.prompt !== item.label && <p className="wrapup-item-prompt">{item.prompt}</p>}
             {item.payerCritical && <p className="wrapup-item-why">{item.why}</p>}
@@ -62,13 +49,13 @@ export function WrapUpDialog({ open, missing, optionalLeft, onKeepRecording, onE
         </p>
       )}
 
-      <div className="wrapup-actions">
-        <button type="button" className="btn btn-primary btn-large" onClick={onKeepRecording} autoFocus>
+      <Group grow gap="sm" mt="xl">
+        <Button size="lg" onClick={onKeepRecording} data-autofocus>
           Keep recording
-        </button>
-        <button type="button" className="btn btn-large" onClick={onEndAnyway}>End anyway</button>
-      </div>
+        </Button>
+        <Button size="lg" variant="default" onClick={onEndAnyway}>End anyway</Button>
+      </Group>
       <p className="wrapup-foot">You can still add missing items when you review the note.</p>
-    </dialog>
+    </DecisionModal>
   );
 }

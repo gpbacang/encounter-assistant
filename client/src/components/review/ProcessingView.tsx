@@ -1,3 +1,4 @@
+import { Button, Loader, Paper, Text, Title, VisuallyHidden } from '@mantine/core';
 import type { PipelineState } from '../../hooks/useNotePipeline';
 import { Icon } from '../Icon';
 
@@ -23,11 +24,11 @@ export function ProcessingView({ state, onRetry }: { state: PipelineState; onRet
   const failed = state.stage === 'error';
   return (
     <main className="processing">
-      <div className="processing-card" aria-busy={!failed}>
-        <h1>{failed ? 'We couldn’t finish your note' : 'Preparing your note'}</h1>
-        <p className="processing-lead">
+      <Paper className="processing-card" aria-busy={!failed}>
+        <Title order={1} fz={30}>{failed ? 'We couldn’t finish your note' : 'Preparing your note'}</Title>
+        <Text className="processing-lead">
           {failed ? 'Your recording is saved, so nothing is lost.' : 'This usually takes a few seconds.'}
-        </p>
+        </Text>
 
         <ol className="processing-steps">
           {STEPS.map((step) => {
@@ -36,13 +37,13 @@ export function ProcessingView({ state, onRetry }: { state: PipelineState; onRet
               <li key={step.key} className={`is-${status}`} aria-current={status === 'active' ? 'step' : undefined}>
                 <span className="processing-icon" aria-hidden="true">
                   {status === 'done' && <Icon name="check" size={16} strokeWidth={3} />}
-                  {status === 'active' && <span className="spinner" />}
+                  {status === 'active' && <Loader size={16} color="everi" />}
                   {status === 'failed' && <Icon name="close" size={16} strokeWidth={3} />}
                 </span>
                 <span>{step.label}</span>
-                <span className="sr-only">
+                <VisuallyHidden>
                   {status === 'done' ? '(done)' : status === 'active' ? '(in progress)' : status === 'failed' ? '(failed)' : ''}
-                </span>
+                </VisuallyHidden>
               </li>
             );
           })}
@@ -52,13 +53,13 @@ export function ProcessingView({ state, onRetry }: { state: PipelineState; onRet
           <div className="processing-error" role="alert">
             <p>{state.error}</p>
             {state.retryable ? (
-              <button type="button" className="btn btn-primary" onClick={onRetry}>Try again</button>
+              <Button onClick={onRetry}>Try again</Button>
             ) : (
               <p className="processing-hint">Trying again won’t help with this one. Check the details and start a new encounter.</p>
             )}
           </div>
         )}
-      </div>
+      </Paper>
     </main>
   );
 }

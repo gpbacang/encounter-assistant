@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Button, Text, Title } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { getEncounterType, type ClinicalNote, type NoteStatement, type RequiredItem, type SoapSection } from '@encounter/shared';
 import { Icon } from '../components/Icon';
 import { ApproveDialog } from '../components/review/ApproveDialog';
@@ -13,6 +15,10 @@ import { noteToText, SOAP_SECTIONS } from '../noteText';
 import { scrollWithin } from '../scrollWithin';
 import { useSession } from '../session';
 import './review.css';
+
+function toast(message: string) {
+  notifications.show({ message, color: 'navy' });
+}
 
 function formatDuration(sec: number) {
   const m = Math.floor(sec / 60);
@@ -43,7 +49,6 @@ export function ReviewPage() {
 
   const [selectedId, setSelectedId] = useState<string>();
   const [approveOpen, setApproveOpen] = useState(false);
-  const [toast, setToast] = useState('');
   const gapRefs = useRef(new Map<string, HTMLDivElement>());
   const noteRef = useRef<HTMLElement>(null);
 
@@ -58,13 +63,7 @@ export function ReviewPage() {
     [session.transcript],
   );
 
-  useEffect(() => {
-    if (!toast) return;
-    const id = window.setTimeout(() => setToast(''), 2500);
-    return () => window.clearTimeout(id);
-  }, [toast]);
-
-  if (!session.patient || !type || !session.checklist || !session.liveTranscript) return <Navigate to="/" replace />;
+  if (!session.patient || !type || !session.checklist || !session.liveTranscript) return <Navigate to={`/${search}`} replace />;
   if (pipeline.stage !== 'done' || !note || !session.transcript) {
     return <ProcessingView state={pipeline} onRetry={pipeline.retry} />;
   }
@@ -119,7 +118,7 @@ export function ReviewPage() {
         : note!.missingItemIds;
     setNote({ ...note!, sections, missingItemIds });
     setSelectedId(undefined);
-    setToast('Statement removed');
+    toast('Statement removed');
   }
 
   function fillGap(item: RequiredItem, text: string) {
@@ -136,7 +135,7 @@ export function ReviewPage() {
       missingItemIds: note!.missingItemIds.filter((id) => id !== item.id),
     });
     setSelectedId(stmt.id);
-    setToast(`Added “${item.label}”`);
+    toast(`Added “${item.label}”`);
   }
 
   function goToGap(item: RequiredItem | undefined) {
@@ -148,6 +147,8 @@ export function ReviewPage() {
 
   function sign() {
     setApproveOpen(false);
+    // Earlier confirmations would otherwise cover the signed screen.
+    notifications.clean();
     update({ signedAt: new Date().toISOString() });
   }
 
@@ -157,22 +158,16 @@ export function ReviewPage() {
     <div className="review">
       <header className="review-bar">
         <div>
-          <h1>Review note</h1>
-          <p>{title} · recorded {formatDuration(session.transcript.durationSec)}</p>
+          <Title order={1} fz={26}>Review note</Title>
+          <Text c="dimmed" fz="sm">{title} · recorded {formatDuration(session.transcript.durationSec)}</Text>
         </div>
         <div className="review-bar-actions">
-          <button type="button" className="btn btn-bar" onClick={() => setToast('Draft saved')}>Save draft</button>
-          <button
-            type="button"
-            className="btn btn-primary btn-bar"
-            onClick={() => (missing.length ? setApproveOpen(true) : sign())}
-          >
+          <Button variant="default" size="lg" onClick={() => toast('Draft saved')}>Save draft</Button>
+          <Button size="lg" onClick={() => (missing.length ? setApproveOpen(true) : sign())}>
             Approve and sign
-          </button>
+          </Button>
         </div>
       </header>
-
-      <p className={`toast ${toast ? 'is-visible' : ''}`} role="status">{toast}</p>
 
       <main className="review-body">
         {missing.length > 0 ? (
@@ -187,9 +182,9 @@ export function ReviewPage() {
                   ? ` Payers commonly deny claims without ${missing.length === 1 ? 'it' : 'these'}.`
                   : ` ${payerMissing} of them ${payerMissing === 1 ? 'is' : 'are'} commonly required by payers.`)}
             </p>
-            <button type="button" className="btn-link" onClick={() => goToGap(missing[0])}>
+            <Button variant="subtle" color="amber.8" onClick={() => goToGap(missing[0])}>
               Go to {missing.length === 1 ? 'item' : 'first item'}
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="review-banner is-ok">

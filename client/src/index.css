@@ -1,58 +1,46 @@
 /*
- * Design tokens. Large type and high contrast so guidance can be read at a
- * glance from arm's length, e.g. a tablet on a stand while hands are busy.
+ * Global styles beyond Mantine. Components use Mantine's theme
+ * (src/theme.ts); these tokens cover the few custom pieces Mantine has no
+ * component for: the recording pill, the large suggestion, evidence rows.
  */
 :root {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-sunken: #f5f6f7;
-  --border: #e8e8e8;
+  --accent: var(--mantine-color-everi-6);
+  --accent-soft: var(--mantine-color-everi-0);
+  --navy: var(--mantine-color-navy-6);
   --ink: #121317;
   --ink-muted: #45474e;
-  --accent: #0068b8;
-  --accent-soft: #e6f0f9;
-  --navy: #0e1d3a;
-  --warn: #9a5b00;
-  --warn-soft: #fbecd2;
+  --ink-secondary: #2e3036;
+  --surface: #ffffff;
+  --surface-sunken: #f5f6f7;
+  --border: var(--mantine-color-default-border);
+  --warn: var(--mantine-color-amber-6);
+  --warn-text: var(--mantine-color-amber-7);
+  --warn-soft: var(--mantine-color-amber-1);
+  --warn-tint: var(--mantine-color-amber-0);
   --danger: #a3302a;
   --recording: #c2362c;
+  --recording-soft: #fbeae8;
 
-  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --text-sm: 0.875rem;
-  --text-base: 1.125rem;
-  --text-lg: 1.375rem;
-  --text-xl: 1.75rem;
-  --text-2xl: 2.25rem;
-
+  /* Spacing and type for the custom pieces, on the same scale as the theme. */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-6: 24px;
   --space-8: 32px;
-  --space-12: 48px;
-
-  --radius: 12px;
-  --radius-lg: 20px;
-  --shadow: 0 1px 2px rgb(14 29 58 / 6%), 0 4px 16px rgb(14 29 58 / 6%);
-
-  font-family: var(--font);
-  font-size: var(--text-base);
-  line-height: 1.5;
-  color: var(--ink);
-  background: var(--bg);
-  -webkit-font-smoothing: antialiased;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+  --text-sm: 0.875rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.375rem;
+  --text-xl: 1.75rem;
+  --radius: var(--mantine-radius-md);
+  --radius-lg: var(--mantine-radius-xl);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
@@ -62,165 +50,26 @@ p {
   margin: 0;
 }
 
-button {
-  font: inherit;
-  cursor: pointer;
-}
-
-:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Visually hidden, still read by screen readers. */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Temporary screens for steps not built yet. */
-.placeholder {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--space-12) var(--space-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.placeholder h1 {
-  font-size: var(--text-xl);
-}
-
-.placeholder-actions {
-  display: flex;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-}
-
-.muted {
-  color: var(--ink-muted);
-}
-
+/* Small uppercase label above a heading or list. */
 .eyebrow {
-  font-size: var(--text-sm);
+  font-size: var(--mantine-font-size-sm);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-muted);
 }
 
-.btn {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ink);
-  border-radius: 999px;
-  padding: var(--space-3) var(--space-6);
-  font-weight: 600;
-  min-height: 48px;
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
 }
 
-.btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+@keyframes rec-wave {
+  from { height: 4px; }
+  to { height: 18px; }
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  padding: 2px var(--space-2);
-  border-radius: 999px;
-  background: var(--surface-sunken);
-  color: var(--ink-muted);
-}
-
-.tag-payer {
-  background: var(--warn-soft);
-  color: var(--warn);
-}
-
-/* ---------- Shared controls ---------- */
-
-.btn-bar {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: 0.9375rem;
-  padding: 0 var(--space-4);
-  white-space: nowrap;
-}
-
-.btn-dark {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: #fff;
-}
-
-.btn-compact {
-  min-height: 44px;
-  padding: 0 var(--space-4);
-  font-size: 0.9375rem;
-}
-
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-}
-
-/* Text-style button for secondary actions. */
-.btn-link {
-  border: 0;
-  background: transparent;
-  padding: 0 var(--space-1);
-  min-height: 44px;
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 0.9375rem;
-}
-
-.btn-danger-link {
-  color: var(--danger);
-  margin-left: auto;
-}
-
-/* Transient confirmation under the top bar. */
-.toast {
-  position: fixed;
+/* Confirmations appear just under the top bar, never over the recording state. */
+.app-notifications[data-position='top-center'] {
   top: 88px;
-  left: 50%;
-  transform: translate(-50%, -8px);
-  background: var(--navy);
-  color: #fff;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  padding: var(--space-2) var(--space-4);
-  border-radius: 999px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 160ms, transform 160ms;
-  z-index: 5;
 }
-
-.toast.is-visible {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
