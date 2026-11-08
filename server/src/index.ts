@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import multer from 'multer';
-import { encounterTypes, getEncounterType } from '@encounter/shared';
+import { getEncounterType } from '@encounter/shared';
 import { mockNotes, mockTranscription, simulateNetwork } from './providers/mock';
 import { realNotes, realTranscription } from './providers/real';
 import { ProviderError } from './providers/types';
@@ -26,10 +26,6 @@ app.use((req, res, next) => {
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, transcription: transcription.name, notes: notes.name });
-});
-
-app.get('/api/encounter-types', (_req, res) => {
-  res.json(encounterTypes);
 });
 
 /**
