@@ -76,7 +76,7 @@ export function LivePage() {
 
   function finish() {
     update({
-      transcript: { encounterTypeId: type!.id, durationSec: Math.round(rec.elapsed), segments: rec.heard },
+      liveTranscript: { encounterTypeId: type!.id, durationSec: Math.round(rec.elapsed), segments: rec.heard },
       flags,
     });
     navigate(`/review${location.search}`);

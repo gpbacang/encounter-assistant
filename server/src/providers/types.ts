@@ -1,13 +1,17 @@
-import type { ClinicalNote, EncounterType, Transcript } from '@encounter/shared';
+import type { ClinicalNote, RequiredItem, Transcript } from '@encounter/shared';
 
 export interface TranscribeInput {
   encounterTypeId: string;
+  /** Recording length in seconds, when known. */
+  durationSec?: number;
   audio?: Buffer;
   mimeType?: string;
 }
 
 export interface GenerateNoteInput {
-  encounterType: EncounterType;
+  encounterTypeId: string;
+  /** This visit's checklist, including items the clinician added. */
+  checklist: RequiredItem[];
   transcript: Transcript;
 }
 

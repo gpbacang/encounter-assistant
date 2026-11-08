@@ -1,4 +1,4 @@
-import type { ClinicalNote, Transcript } from '@encounter/shared';
+import type { ApiErrorBody, ClinicalNote, GenerateNoteRequest, Transcript, TranscribeFields } from '@encounter/shared';
 
 export class ApiError extends Error {
   retryable: boolean;
@@ -8,34 +8,50 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/**
+ * Demo switch for error states, read from the page URL:
+ *   ?fail=1     every API call fails
+ *   ?fail=once  each endpoint fails the first time, so "Try again" recovers
+ */
+const failedOnce = new Set<string>();
+function shouldFail(endpoint: string): boolean {
+  const mode = new URLSearchParams(location.search).get('fail');
+  if (mode === null) return false;
+  return mode !== 'once' || !failedOnce.has(endpoint);
+}
+
+async function request<T>(endpoint: string, init: RequestInit): Promise<T> {
+  const fail = shouldFail(endpoint);
   let res: Response;
   try {
-    res = await fetch(path, init);
-  } catch {
+    res = await fetch(`/api/${endpoint}${fail ? '?fail=1' : ''}`, init);
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') throw err;
     throw new ApiError('Can’t reach the server. Check your connection and try again.', true);
   }
+  // Counted only once a response arrives, so an aborted request doesn't use up ?fail=once.
+  if (fail) failedOnce.add(endpoint);
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new ApiError(body.error ?? `Request failed (${res.status}).`, body.retryable ?? true);
+    const { error, retryable } = body as Partial<ApiErrorBody>;
+    throw new ApiError(error ?? `Request failed (${res.status}).`, retryable ?? true);
   }
   return body as T;
 }
 
-/** Add `?fail=1` in the page URL to make API calls fail, for demoing error states. */
-const failParam = () => (new URLSearchParams(location.search).has('fail') ? '?fail=1' : '');
-
-export function transcribe(encounterTypeId: string, audio?: Blob): Promise<Transcript> {
+export function transcribe(fields: TranscribeFields, signal?: AbortSignal): Promise<Transcript> {
   const form = new FormData();
-  form.append('encounterTypeId', encounterTypeId);
-  if (audio) form.append('audio', audio, 'encounter.webm');
-  return request(`/api/transcribe${failParam()}`, { method: 'POST', body: form });
+  form.append('encounterTypeId', fields.encounterTypeId);
+  if (fields.durationSec !== undefined) form.append('durationSec', String(fields.durationSec));
+  if (fields.audio) form.append('audio', fields.audio, 'encounter.webm');
+  return request('transcribe', { method: 'POST', body: form, signal });
 }
 
-export function generateNote(encounterTypeId: string, transcript: Transcript): Promise<ClinicalNote> {
-  return request(`/api/generate-note${failParam()}`, {
+export function generateNote(body: GenerateNoteRequest, signal?: AbortSignal): Promise<ClinicalNote> {
+  return request('generate-note', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ encounterTypeId, transcript }),
+    body: JSON.stringify(body),
+    signal,
   });
 }

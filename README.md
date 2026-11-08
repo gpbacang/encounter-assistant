@@ -9,17 +9,45 @@ npm install
 npm run dev        # API on :8787, app on :5173
 ```
 
-Open http://localhost:5173. Add `?fail=1` to the URL to make API calls fail and see the error states.
+Open http://localhost:5173.
+
+### Demo switches (add to the URL)
+
+| Switch | Effect |
+| --- | --- |
+| `?speed=20` | Plays the visit faster (default 5x; `?speed=1` is real time) |
+| `?fail=once` | Each API call fails the first time, so **Try again** recovers |
+| `?fail=1` | Every API call fails |
+
+Switches carry over from Setup to Live to Review.
 
 ## Structure
 
 ```
-shared/   Types, encounter types and their required items, coverage detection, mock transcript
-server/   Express API: /api/transcribe and /api/generate-note behind a provider interface
+shared/   Types, API shapes, encounter types and their items, checklist and coverage logic, mock transcript
+server/   Express API behind a provider interface (mock now, real services later)
 client/   React + TypeScript (Vite), plain CSS with design tokens
 ```
 
-`shared` is used by both sides, so "what counts as covered" has one definition.
+`shared` is used by both sides, so "what counts as covered" and the request shapes have one definition.
+
+## API
+
+| Endpoint | Body | Returns |
+| --- | --- | --- |
+| `POST /api/transcribe` | multipart: `encounterTypeId`, `durationSec?`, `audio?` | `Transcript`: speaker-labeled segments |
+| `POST /api/generate-note` | JSON: `encounterTypeId`, `checklist`, `transcript` | `ClinicalNote`: SOAP statements citing transcript segments, plus missing required items |
+| `GET /api/health` | | Which providers are active |
+
+The note endpoint receives the visit's own checklist, so items the clinician added or hid at setup are respected. Bad input returns 400 with `retryable: false`; provider failures return 503 with `retryable: true`.
+
+Check the API end to end against a running server:
+
+```bash
+npm run smoke -w server
+```
+
+Configuration lives in `server/.env.example` (provider, simulated latency, random failure rate).
 
 ## What's real and what's mocked
 
@@ -27,10 +55,9 @@ client/   React + TypeScript (Vite), plain CSS with design tokens
 | --- | --- |
 | Encounter types and required items | Real data, modeled on Medicare's lower limb prostheses policy (illustrative) |
 | Setup screen | Built, including per-visit add and hide for checklist items |
-| Live encounter screen | Built: simulated recording at 5x speed (`?speed=1` for real time), suggested next, progress, wrap-up check |
-| Review screen | Placeholder |
-| Transcription | Mock provider returning a scripted conversation, with simulated latency |
-| SOAP note generation | Mock provider; real provider is a stub behind the same interface |
+| Live encounter screen | Built: simulated recording, suggested next, progress, wrap-up check |
+| Processing | Built: calls both endpoints, retries resume at the failed step |
+| Review screen | Plain note preview; evidence links and filling gaps are next |
+| Transcription | Mock provider returning the scripted conversation, trimmed to the recording length |
+| SOAP note generation | Mock provider with canned clinical phrasing; real provider is a stub behind the same interface |
 | Coverage detection | Keyword matching; production would use the LLM |
-
-Configuration for the API lives in `server/.env.example`.

@@ -46,46 +46,61 @@ const initialEvalNote: Record<SoapSection, NoteStatement[]> = {
 
 export const mockTranscription: TranscriptionProvider = {
   name: 'mock',
-  async transcribe({ encounterTypeId }) {
+  async transcribe({ encounterTypeId, durationSec }) {
     await simulateNetwork();
-    // Every encounter type falls back to the one scripted conversation.
-    const transcript = mockTranscripts[encounterTypeId] ?? mockTranscripts['initial-eval'];
-    return { ...transcript, encounterTypeId };
+    // Every encounter type falls back to the one scripted conversation,
+    // trimmed to what was actually recorded if the visit ended early.
+    const script = mockTranscripts[encounterTypeId] ?? mockTranscripts['initial-eval'];
+    const segments = durationSec === undefined ? script.segments : script.segments.filter((s) => s.end <= durationSec);
+    return { encounterTypeId, durationSec: durationSec ?? script.durationSec, segments };
   },
 };
 
 export const mockNotes: NoteProvider = {
   name: 'mock',
-  async generateNote({ encounterType, transcript }) {
+  async generateNote({ encounterTypeId, checklist, transcript }) {
     await simulateNetwork();
 
-    const coverage = detectCoverage(encounterType, transcript.segments);
-    const missingItemIds = missingRequired(encounterType, coverage).map((i) => i.id);
+    const list = { items: checklist };
+    const coverage = detectCoverage(list, transcript.segments);
+    const coveredIds = new Set(coverage.filter((c) => c.state === 'covered').map((c) => c.itemId));
+    const heard = new Set(transcript.segments.map((s) => s.id));
+    const sections: ClinicalNote['sections'] = { subjective: [], objective: [], assessment: [], plan: [] };
 
-    let sections: ClinicalNote['sections'];
-    if (encounterType.id === 'initial-eval') {
-      sections = initialEvalNote;
-    } else {
-      // Generic fallback: one statement per covered item, quoting its evidence.
-      sections = { subjective: [], objective: [], assessment: [], plan: [] };
-      for (const c of coverage) {
-        if (c.state !== 'covered' || !c.segmentId) continue;
-        const item = encounterType.items.find((i) => i.id === c.itemId)!;
-        const seg = transcript.segments.find((s) => s.id === c.segmentId)!;
-        sections[item.soap].push({
-          id: `${item.id}-stmt`,
-          itemId: item.id,
-          text: `${item.label}: ${seg.text}`,
-          sourceSegmentIds: [seg.id],
-        });
+    // Canned clinical phrasing where we have it, kept only when its item is
+    // still on the checklist and covered, and its evidence was recorded.
+    const canned = encounterTypeId === 'initial-eval' ? initialEvalNote : undefined;
+    const cannedItemIds = new Set<string>();
+    if (canned) {
+      for (const section of Object.keys(canned) as SoapSection[]) {
+        for (const stmt of canned[section]) {
+          if (!stmt.sourceSegmentIds.every((id) => heard.has(id))) continue;
+          if (stmt.itemId && !coveredIds.has(stmt.itemId)) continue;
+          sections[section].push(stmt);
+          if (stmt.itemId) cannedItemIds.add(stmt.itemId);
+        }
       }
     }
 
+    // Everything else that was covered (other encounter types, items the
+    // clinician added): one statement quoting its evidence.
+    for (const c of coverage) {
+      if (c.state !== 'covered' || !c.segmentId || cannedItemIds.has(c.itemId)) continue;
+      const item = checklist.find((i) => i.id === c.itemId)!;
+      const seg = transcript.segments.find((s) => s.id === c.segmentId)!;
+      sections[item.soap].push({
+        id: `${item.id}-stmt`,
+        itemId: item.id,
+        text: `${item.label}: ${seg.text}`,
+        sourceSegmentIds: [seg.id],
+      });
+    }
+
     return {
-      encounterTypeId: encounterType.id,
+      encounterTypeId,
       generatedAt: new Date().toISOString(),
       sections,
-      missingItemIds,
+      missingItemIds: missingRequired(list, coverage).map((i) => i.id),
     };
   },
 };
