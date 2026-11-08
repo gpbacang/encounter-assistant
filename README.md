@@ -30,7 +30,7 @@ Switches carry over from Setup to Live to Review.
 ```
 shared/   Types, API shapes, encounter types and their items, checklist and coverage logic, mock transcript
 server/   Express API behind a provider interface (mock now, real services later)
-client/   React + TypeScript (Vite), plain CSS with design tokens
+client/   React + TypeScript (Vite), Mantine UI themed with Everi Labs colors
 ```
 
 `shared` is used by both sides, so "what counts as covered" and the request shapes have one definition.
