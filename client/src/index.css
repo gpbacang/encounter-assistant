@@ -3,14 +3,14 @@
  * glance from arm's length, e.g. a tablet on a stand while hands are busy.
  */
 :root {
-  --bg: #f6f4ef;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-sunken: #efece5;
-  --border: #ddd8cc;
-  --ink: #1d2321;
-  --ink-muted: #5c6460;
-  --accent: #0f6b5c;
-  --accent-soft: #dcefe9;
+  --surface-sunken: #f5f6f7;
+  --border: #e8e8e8;
+  --ink: #121317;
+  --ink-muted: #45474e;
+  --accent: #0068b8;
+  --accent-soft: #e6f0f9;
   --warn: #9a5b00;
   --warn-soft: #fbecd2;
   --danger: #a3302a;
@@ -33,7 +33,7 @@
 
   --radius: 12px;
   --radius-lg: 20px;
-  --shadow: 0 1px 2px rgb(29 35 33 / 6%), 0 4px 16px rgb(29 35 33 / 6%);
+  --shadow: 0 1px 2px rgb(14 29 58 / 6%), 0 4px 16px rgb(14 29 58 / 6%);
 
   font-family: var(--font);
   font-size: var(--text-base);

@@ -97,7 +97,7 @@
 }
 
 .option:hover {
-  border-color: #b9b3a5;
+  border-color: #c9ced6;
 }
 
 .option[aria-pressed='true'] {
@@ -127,7 +127,7 @@
 }
 
 .option-type[aria-pressed='true'] .option-detail {
-  color: #3f4a46;
+  color: #2e3036;
 }
 
 .option-time {
