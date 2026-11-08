@@ -51,7 +51,7 @@ Check the API end to end against a running server:
 npm run smoke -w server
 ```
 
-Configuration lives in `server/.env.example` (provider, simulated latency, random failure rate). To change it, copy it to `server/.env`; the server loads that file on start if it exists, and shell variables still work.
+Configuration lives in `server/.env.example` (port, simulated latency, random failure rate). To change it, copy it to `server/.env`; the server loads that file on start if it exists, and shell variables still work.
 
 ## What's real and what's mocked
 
@@ -64,5 +64,5 @@ Configuration lives in `server/.env.example` (provider, simulated latency, rando
 | Review screen | Built: each statement links to its transcript evidence; edit or remove statements; fill gaps by dictating (simulated) or typing; sign with a warning if items are missing |
 | Signing and export | Signing is local; copy and download as text work; export to a record system is not built |
 | Transcription | Mock provider returning the scripted conversation, trimmed to the recording length |
-| SOAP note generation | Mock provider with canned clinical phrasing; real provider is a stub behind the same interface |
+| SOAP note generation | Mock provider with canned clinical phrasing; a real LLM would plug in behind the same interface |
 | Coverage detection | Keyword matching; production would use the LLM |

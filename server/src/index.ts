@@ -3,13 +3,11 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import multer from 'multer';
 import { getEncounterType } from '@encounter/shared';
 import { mockNotes, mockTranscription, simulateNetwork } from './providers/mock';
-import { realNotes, realTranscription } from './providers/real';
 import { ProviderError } from './providers/types';
 import { parseGenerateNote } from './validate';
 
-const useReal = process.env.PROVIDER === 'real';
-const transcription = useReal ? realTranscription : mockTranscription;
-const notes = useReal ? realNotes : mockNotes;
+const transcription = mockTranscription;
+const notes = mockNotes;
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
