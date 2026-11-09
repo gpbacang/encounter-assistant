@@ -41,7 +41,6 @@ client/   React + TypeScript (Vite), Mantine UI themed with Everi Labs colors
 | --- | --- | --- |
 | `POST /api/transcribe` | multipart: `encounterTypeId`, `durationSec?`, `audio?` | `Transcript`: speaker-labeled segments |
 | `POST /api/generate-note` | JSON: `encounterTypeId`, `checklist`, `transcript` | `ClinicalNote`: SOAP statements citing transcript segments, plus missing required items |
-| `GET /api/health` | | Which providers are active |
 
 The note endpoint receives the visit's own checklist, so items the clinician added or hid at setup are respected. Bad input returns 400 with `retryable: false`; provider failures return 503 with `retryable: true`.
 

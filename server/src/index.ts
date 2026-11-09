@@ -20,10 +20,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, transcription: transcription.name, notes: notes.name });
-});
-
 /**
  * POST /api/transcribe
  * multipart/form-data: encounterTypeId, durationSec (optional), audio (optional file)
