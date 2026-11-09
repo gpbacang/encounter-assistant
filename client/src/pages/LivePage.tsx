@@ -73,7 +73,9 @@ export function LivePage() {
 
   function finish() {
     update({
-      liveTranscript: { encounterTypeId: type!.id, durationSec: Math.round(rec.elapsed), segments: rec.heard },
+      // Floor, not round: the server keeps segments with end <= durationSec, so
+      // rounding up would include one the live screen never counted as heard.
+      liveTranscript: { encounterTypeId: type!.id, durationSec: Math.floor(rec.elapsed), segments: rec.heard },
       flags,
       // A new recording replaces anything built from an earlier one.
       transcript: undefined,
