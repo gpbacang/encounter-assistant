@@ -31,12 +31,16 @@ async function request<T>(endpoint: string, init: RequestInit): Promise<T> {
   }
   // Counted only once a response arrives, so an aborted request doesn't use up ?fail=once.
   if (fail) failedOnce.add(endpoint);
-  const body = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const { error, retryable } = body as Partial<ApiErrorBody>;
+    const { error, retryable } = (await res.json().catch(() => ({}))) as Partial<ApiErrorBody>;
     throw new ApiError(error ?? `Request failed (${res.status}).`, retryable ?? true);
   }
-  return body as T;
+  try {
+    return (await res.json()) as T;
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') throw err;
+    throw new ApiError('The server sent an unexpected response. Try again.', true);
+  }
 }
 
 export function transcribe(fields: TranscribeFields, signal?: AbortSignal): Promise<Transcript> {

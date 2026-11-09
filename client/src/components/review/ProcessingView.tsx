@@ -20,15 +20,26 @@ function statusOf(step: (typeof STEPS)[number]['key'], state: PipelineState): St
 }
 
 /** The short wait between ending the visit and reviewing the note. */
-export function ProcessingView({ state, onRetry }: { state: PipelineState; onRetry: () => void }) {
+export function ProcessingView({
+  state,
+  onRetry,
+  onNewEncounter,
+}: {
+  state: PipelineState;
+  onRetry: () => void;
+  onNewEncounter: () => void;
+}) {
   const failed = state.stage === 'error';
   return (
     <main className="processing">
       <Paper className="processing-card" aria-busy={!failed}>
         <Title order={1} fz={30}>{failed ? 'We couldn’t finish your note' : 'Preparing your note'}</Title>
-        <Text className="processing-lead">
-          {failed ? 'Your recording is saved, so nothing is lost.' : 'This usually takes a few seconds.'}
-        </Text>
+        {/* Only promise the recording is safe when retrying is the way forward. */}
+        {(!failed || state.retryable) && (
+          <Text className="processing-lead">
+            {failed ? 'Your recording is saved, so nothing is lost.' : 'This usually takes a few seconds.'}
+          </Text>
+        )}
 
         <ol className="processing-steps">
           {STEPS.map((step) => {
@@ -55,7 +66,10 @@ export function ProcessingView({ state, onRetry }: { state: PipelineState; onRet
             {state.retryable ? (
               <Button onClick={onRetry}>Try again</Button>
             ) : (
-              <p className="processing-hint">Trying again won’t help with this one. Check the details and start a new encounter.</p>
+              <>
+                <p className="processing-hint">Trying again won’t help with this one. Check the details and start a new encounter.</p>
+                <Button onClick={onNewEncounter}>Start a new encounter</Button>
+              </>
             )}
           </div>
         )}

@@ -63,9 +63,14 @@ export function ReviewPage() {
     [session.transcript],
   );
 
+  function newEncounter() {
+    reset();
+    navigate(`/${search}`);
+  }
+
   if (!session.patient || !type || !session.checklist || !session.liveTranscript) return <Navigate to={`/${search}`} replace />;
   if (pipeline.stage !== 'done' || !note || !session.transcript) {
-    return <ProcessingView state={pipeline} onRetry={pipeline.retry} />;
+    return <ProcessingView state={pipeline} onRetry={pipeline.retry} onNewEncounter={newEncounter} />;
   }
 
   const title = `${session.patient.name} · ${type.name}`;
@@ -85,10 +90,7 @@ export function ReviewPage() {
         noteText={text}
         fileName={`${session.patient.name.replace(/\s+/g, '-').toLowerCase()}-${type.id}.txt`}
         missingCount={missing.length}
-        onNewEncounter={() => {
-          reset();
-          navigate(`/${search}`);
-        }}
+        onNewEncounter={newEncounter}
       />
     );
   }
