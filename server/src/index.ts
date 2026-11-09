@@ -92,5 +92,5 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 
 const port = Number(process.env.PORT ?? 8787);
 app.listen(port, () => {
-  console.log(`API on http://localhost:${port} (providers: ${transcription.name}/${notes.name})`);
+  console.log(`API on http://localhost:${port}`);
 });
