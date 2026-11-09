@@ -65,6 +65,8 @@ export function LivePage() {
   }, [checklist, rec.heard]);
 
   if (!session.patient || !type || !session.checklist) return <Navigate to={`/${location.search}`} replace />;
+  // A signed note is final; coming back here must not record over it.
+  if (session.signedAt) return <Navigate to={`/review${location.search}`} replace />;
 
   const latest = view.covered[view.covered.length - 1];
   const showCaptured = latest && rec.elapsed - latest.at < CAPTURED_VISIBLE_FOR;
@@ -73,6 +75,9 @@ export function LivePage() {
     update({
       liveTranscript: { encounterTypeId: type!.id, durationSec: Math.round(rec.elapsed), segments: rec.heard },
       flags,
+      // A new recording replaces anything built from an earlier one.
+      transcript: undefined,
+      note: undefined,
     });
     navigate(`/review${location.search}`);
   }
