@@ -1,4 +1,3 @@
-import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import multer from 'multer';
 import { getEncounterType } from '@encounter/shared';
@@ -12,7 +11,6 @@ const notes = mockNotes;
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
-app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
 // One line per request, so the demo terminal shows the backend at work.
