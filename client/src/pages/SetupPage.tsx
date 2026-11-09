@@ -13,7 +13,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { buildChecklist, createCustomItem, encounterTypes, type RequiredItem } from '@encounter/shared';
+import { buildChecklist, createCustomItem, encounterTypes, MAX_CHECKLIST_ITEMS, type RequiredItem } from '@encounter/shared';
 import { ChecklistEditor } from '../components/ChecklistEditor';
 import { Icon } from '../components/Icon';
 import { mockPatients, useSession } from '../session';
@@ -40,6 +40,8 @@ export function SetupPage() {
   const checklist = buildChecklist(type, hiddenIds, customItems);
   const requiredCount = checklist.filter((i) => i.priority === 'required').length;
   const payerCount = checklist.filter((i) => i.payerCritical).length;
+  // Checked on the built list, since switching type changes the template size.
+  const tooMany = checklist.length > MAX_CHECKLIST_ITEMS;
 
   function setHidden(id: string, hide: boolean) {
     setHiddenIds((prev) => {
@@ -144,10 +146,15 @@ export function SetupPage() {
                   onChange={(e) => setConsented(e.currentTarget.checked)}
                   label="Patient has agreed to the visit being recorded"
                 />
+                {tooMany && (
+                  <Text fz="sm" c="red.8" role="alert">
+                    A checklist can have at most {MAX_CHECKLIST_ITEMS} items. Remove {checklist.length - MAX_CHECKLIST_ITEMS} to continue.
+                  </Text>
+                )}
                 <Button
                   size="lg"
                   fullWidth
-                  disabled={!consented}
+                  disabled={!consented || tooMany}
                   onClick={handleStart}
                   leftSection={<Icon name="mic" size={20} />}
                 >

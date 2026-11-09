@@ -25,6 +25,9 @@ export interface GenerateNoteRequest {
   transcript: Transcript;
 }
 
+/** Most checklist items one visit can have; the server rejects longer lists. */
+export const MAX_CHECKLIST_ITEMS = 50;
+
 /** Body of any non-2xx response. */
 export interface ApiErrorBody {
   error: string;

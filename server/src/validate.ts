@@ -1,4 +1,4 @@
-import type { GenerateNoteRequest, RequiredItem, SoapSection, Transcript } from '@encounter/shared';
+import { MAX_CHECKLIST_ITEMS, type GenerateNoteRequest, type RequiredItem, type SoapSection, type Transcript } from '@encounter/shared';
 
 /**
  * Hand-rolled request validation. Small enough not to need a schema
@@ -7,7 +7,6 @@ import type { GenerateNoteRequest, RequiredItem, SoapSection, Transcript } from 
  */
 
 const SOAP: SoapSection[] = ['subjective', 'objective', 'assessment', 'plan'];
-const MAX_ITEMS = 50;
 const MAX_SEGMENTS = 2000;
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
@@ -38,7 +37,7 @@ export function parseGenerateNote(body: unknown): GenerateNoteRequest | string {
   if (!isObj(body)) return 'Expected a JSON body.';
   if (!isStr(body.encounterTypeId, 100)) return 'encounterTypeId is required.';
   if (!Array.isArray(body.checklist) || body.checklist.length === 0) return 'checklist must be a non-empty array.';
-  if (body.checklist.length > MAX_ITEMS) return `checklist can have at most ${MAX_ITEMS} items.`;
+  if (body.checklist.length > MAX_CHECKLIST_ITEMS) return `checklist can have at most ${MAX_CHECKLIST_ITEMS} items.`;
   for (const [i, item] of body.checklist.entries()) {
     const err = checkItem(item, i);
     if (err) return err;

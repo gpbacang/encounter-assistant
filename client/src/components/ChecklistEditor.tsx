@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { ActionIcon, Badge, Button, Group, Text, TextInput, VisuallyHidden } from '@mantine/core';
-import { canHide, type RequiredItem } from '@encounter/shared';
+import { canHide, MAX_CHECKLIST_ITEMS, type RequiredItem } from '@encounter/shared';
 import { Icon } from './Icon';
 import './checklist-editor.css';
 
@@ -53,6 +53,10 @@ export function ChecklistEditor({ templateItems, hiddenIds, customItems, onHide,
     const taken = [...templateItems, ...customItems].some((i) => i.label.toLowerCase() === label.toLowerCase());
     if (taken) {
       setError('That item is already on the checklist.');
+      return;
+    }
+    if (templateItems.length + customItems.length >= MAX_CHECKLIST_ITEMS) {
+      setError(`A checklist can have at most ${MAX_CHECKLIST_ITEMS} items.`);
       return;
     }
     onAdd(label);
