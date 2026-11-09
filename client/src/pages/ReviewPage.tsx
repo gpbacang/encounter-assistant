@@ -49,6 +49,8 @@ export function ReviewPage() {
 
   const [selectedId, setSelectedId] = useState<string>();
   const [approveOpen, setApproveOpen] = useState(false);
+  // Statements with an edit open; signing would silently drop their drafts.
+  const [editingIds, setEditingIds] = useState<ReadonlySet<string>>(new Set());
   const gapRefs = useRef(new Map<string, HTMLDivElement>());
   const noteRef = useRef<HTMLElement>(null);
 
@@ -109,7 +111,17 @@ export function ReviewPage() {
     );
   }
 
+  function setEditing(id: string, editing: boolean) {
+    setEditingIds((prev) => {
+      const next = new Set(prev);
+      if (editing) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
   function removeStatement(section: SoapSection, stmt: NoteStatement) {
+    setEditing(stmt.id, false);
     const sections = { ...note!.sections, [section]: note!.sections[section].filter((s) => s.id !== stmt.id) };
     // If that was the only statement for a required item, the item is missing again.
     const item = checklist.find((i) => i.id === stmt.itemId);
@@ -147,6 +159,19 @@ export function ReviewPage() {
     el.focus({ preventScroll: true });
   }
 
+  function handleApprove() {
+    const [openEdit] = editingIds;
+    if (openEdit) {
+      toast('Save or cancel your edit before signing.');
+      const el = document.getElementById(`edit-${openEdit}`);
+      scrollWithin(noteRef.current, el);
+      el?.focus({ preventScroll: true });
+      return;
+    }
+    if (missing.length) setApproveOpen(true);
+    else sign();
+  }
+
   function sign() {
     setApproveOpen(false);
     // Earlier confirmations would otherwise cover the signed screen.
@@ -165,7 +190,7 @@ export function ReviewPage() {
         </div>
         <div className="review-bar-actions">
           <Button variant="default" size="lg" onClick={() => toast('Draft saved')}>Save draft</Button>
-          <Button size="lg" onClick={() => (missing.length ? setApproveOpen(true) : sign())}>
+          <Button size="lg" onClick={handleApprove}>
             Approve and sign
           </Button>
         </div>
@@ -215,6 +240,7 @@ export function ReviewPage() {
                           onSelect={() => setSelectedId(s.id === selectedId ? undefined : s.id)}
                           onSave={(text) => saveStatement(key, s.id, text)}
                           onRemove={() => removeStatement(key, s)}
+                          onEditingChange={(editing) => setEditing(s.id, editing)}
                         />
                       ))}
                     </ul>

@@ -11,13 +11,15 @@ interface Props {
   onSelect: () => void;
   onSave: (text: string) => void;
   onRemove: () => void;
+  /** Lets the page refuse to sign while an edit is still open. */
+  onEditingChange: (editing: boolean) => void;
 }
 
 /**
  * One sentence of the note. Selecting it shows its evidence in the
  * transcript; editing happens in place so the clinician never loses context.
  */
-export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave, onRemove }: Props) {
+export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave, onRemove, onEditingChange }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(statement.text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -33,6 +35,7 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
 
   function stopEditing() {
     setEditing(false);
+    onEditingChange(false);
     requestAnimationFrame(() => editButtonRef.current?.focus());
   }
 
@@ -104,6 +107,7 @@ export function StatementRow({ statement, evidenceAt, selected, onSelect, onSave
           onClick={() => {
             setDraft(statement.text);
             setEditing(true);
+            onEditingChange(true);
           }}
         >
           Edit
