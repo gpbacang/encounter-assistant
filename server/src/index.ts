@@ -1,5 +1,5 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
-import multer from 'multer';
+import multer, { MulterError } from 'multer';
 import { getEncounterType } from '@encounter/shared';
 import { mockNotes, mockTranscription, simulateNetwork } from './providers/mock';
 import { ProviderError } from './providers/types';
@@ -81,6 +81,14 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   }
   if (typeof err === 'object' && err && 'type' in err && err.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'The request body is not valid JSON.', retryable: false });
+  }
+  if (err instanceof MulterError) {
+    const status = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+    return res.status(status).json({ error: err.message, retryable: false });
+  }
+  // body-parser errors (too large, unsupported encoding, ...) carry their own 4xx status.
+  if (typeof err === 'object' && err && 'status' in err && typeof err.status === 'number' && err.status >= 400 && err.status < 500) {
+    return res.status(err.status).json({ error: 'The request could not be read.', retryable: false });
   }
   console.error(err);
   res.status(500).json({ error: 'Something went wrong.', retryable: true });

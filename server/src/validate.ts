@@ -8,6 +8,7 @@ import { MAX_CHECKLIST_ITEMS, type GenerateNoteRequest, type RequiredItem, type 
 
 const SOAP: SoapSection[] = ['subjective', 'objective', 'assessment', 'plan'];
 const MAX_SEGMENTS = 2000;
+const MAX_KEYWORDS = 50;
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 const isStr = (v: unknown, max = 500): v is string => typeof v === 'string' && v.length > 0 && v.length <= max;
@@ -17,7 +18,9 @@ function checkItem(v: unknown, i: number): string | null {
   if (!isStr(v.id, 100) || !isStr(v.label, 200)) return `checklist[${i}] needs an id and a label.`;
   if (v.priority !== 'required' && v.priority !== 'recommended') return `checklist[${i}].priority is invalid.`;
   if (!SOAP.includes(v.soap as SoapSection)) return `checklist[${i}].soap is invalid.`;
+  if (typeof v.payerCritical !== 'boolean') return `checklist[${i}].payerCritical must be true or false.`;
   if (!Array.isArray(v.keywords) || !v.keywords.every((k) => isStr(k, 100))) return `checklist[${i}].keywords must be strings.`;
+  if (v.keywords.length > MAX_KEYWORDS) return `checklist[${i}] can have at most ${MAX_KEYWORDS} keywords.`;
   return null;
 }
 
@@ -38,9 +41,13 @@ export function parseGenerateNote(body: unknown): GenerateNoteRequest | string {
   if (!isStr(body.encounterTypeId, 100)) return 'encounterTypeId is required.';
   if (!Array.isArray(body.checklist) || body.checklist.length === 0) return 'checklist must be a non-empty array.';
   if (body.checklist.length > MAX_CHECKLIST_ITEMS) return `checklist can have at most ${MAX_CHECKLIST_ITEMS} items.`;
+  const ids = new Set<string>();
   for (const [i, item] of body.checklist.entries()) {
     const err = checkItem(item, i);
     if (err) return err;
+    const { id } = item as RequiredItem;
+    if (ids.has(id)) return `checklist[${i}].id "${id}" is used more than once.`;
+    ids.add(id);
   }
   const tErr = checkTranscript(body.transcript);
   if (tErr) return tErr;

@@ -12,11 +12,10 @@ type WithItems = Pick<EncounterType, 'items'>;
  * deterministic makes the demo predictable and lets the frontend and backend
  * share one definition of "covered".
  */
-function matches(item: RequiredItem, text: string): boolean {
-  const lower = text.toLowerCase();
-  return item.keywords.some((kw) => {
+function keywordPatterns(item: RequiredItem): RegExp[] {
+  return item.keywords.map((kw) => {
     const escaped = kw.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`(^|\\W)${escaped}(\\W|$)`).test(lower);
+    return new RegExp(`(^|\\W)${escaped}(\\W|$)`);
   });
 }
 
@@ -24,8 +23,11 @@ export function detectCoverage(
   encounterType: WithItems,
   segments: TranscriptSegment[],
 ): ItemCoverage[] {
+  const texts = segments.map((s) => s.text.toLowerCase());
   return encounterType.items.map((item) => {
-    const hit = segments.find((s) => matches(item, s.text));
+    const patterns = keywordPatterns(item);
+    const index = texts.findIndex((text) => patterns.some((re) => re.test(text)));
+    const hit = index === -1 ? undefined : segments[index];
     return hit
       ? { itemId: item.id, state: 'covered', segmentId: hit.id }
       : { itemId: item.id, state: 'missing' };
